@@ -1,7 +1,13 @@
 import os.path
+import datetime
 
 from conans import CMake, ConanFile, tools
+from conans.errors import ConanException
 
+MODSHOT_VERSION_H='''#ifndef MODSHOT_VERSION
+#define MODSHOT_VERSION "%s"
+#endif
+'''
 
 class MkxpConan(ConanFile):
     name = "oneshot"
@@ -38,6 +44,7 @@ class MkxpConan(ConanFile):
         "cygwin_installer:packages=xxd",
         # Avoid dead url bitrot in cygwin_installer
         "cygwin_installer:with_pear=False",
+        "ruby:with_openssl=True",
     )
 
     #def build_requirements(self):
@@ -45,8 +52,6 @@ class MkxpConan(ConanFile):
             # self.build_requires("cygwin_installer/2.9.0@bincrafters/stable")
 
     def requirements(self):
-        if self.options.platform == "steam":
-            self.requires("steamworks/1.42@eliza/stable")
         if tools.os_info.is_linux:
             # Overrides
             self.requires("sqlite3/3.29.0")
@@ -62,7 +67,22 @@ class MkxpConan(ConanFile):
             # Fix linker error in SDL_sound fork with SDL2
             self.options["sdl2"].shared = True
 
+    def generate_version_number(self):
+        try:
+            git = tools.Git(self.source_folder)
+            revision = git.get_commit()[0:7]
+            if not git.is_pristine():
+                revision += "-dirty"
+        except ConanException:
+            # this is either not a git repo, or we don't have git on the system
+            revision = "nongit"
+        revision += datetime.datetime.now().strftime("-%y%m%d-%H%M%S")
+
+        tools.save(os.path.join(self.source_folder, 'src/version.h'), MODSHOT_VERSION_H%revision)
+
     def build_configure(self):
+        self.generate_version_number()
+
         cmake = CMake(self, msbuild_verbosity='minimal')
         if self.options.platform == "steam":
             cmake.definitions["STEAM"] = "ON"
@@ -81,6 +101,10 @@ class MkxpConan(ConanFile):
         #else:
         #    self.build_configure()
         self.build_configure()
+
+        # ship certificates into the ssl folder in the game directory
+        # openssl will use this folder since we hardcoded it in binding-mri.cpp
+        tools.download("https://curl.haxx.se/ca/cacert.pem", "bin/lib/cacert.pem", overwrite=True)
 
     def package(self):
         self.copy("*", dst="bin", src="bin")
@@ -108,3 +132,11 @@ class MkxpConan(ConanFile):
                  keep_path=True)
             if self.settings.build_type == "Debug":
                 copy("*.pdb", dst="bin", root_package=dep, keep_path=False)
+        # copy the ruby standard library
+	# this is a very ugly way of doing this (putting it in bin instead of lib)
+	# but this makes distributing mods easier, and also makes sure windows and linux are mostly the same
+        copy("*",
+            dst="bin/lib/ruby/",
+            src="lib/ruby/2.5.0/",
+            root_package="ruby",
+            keep_path=True)

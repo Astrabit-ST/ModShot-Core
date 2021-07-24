@@ -16,13 +16,5 @@ cd /work/build
 conan install /work/src --build=missing
 conan build /work/src
 
-# build journal if doesn't exist
-[ ! -f /work/build/_______ ] && eval "$(pyenv init -)" && \
-pyinstaller --onefile \
-            --distpath /work/build \
-            --workpath `mktemp -d` \
-            --specpath=/work/src/journal/unix \
-            /work/src/journal/unix/journal-linux.spec
-
-# build appimage
-/work/src/make-appimage.sh /work/src /work/build /work/data /work/extra_unix_content /work/build/_______ /work/dist/ModShot.AppImage
+dos2unix /work/src/make-linux-dist.sh
+/work/src/make-linux-dist.sh /work/build /work/dist /work/data

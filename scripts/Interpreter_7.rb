@@ -5,6 +5,7 @@
 #  Game_System class and the Game_Event class.
 #==============================================================================
 
+require 'fiber'
 class Interpreter
   #--------------------------------------------------------------------------
   # * Change Enemy HP
@@ -276,7 +277,14 @@ class Interpreter
     #  return false
     #end
     # Continue
-    eval(script)
+    result = eval(script)
+    if result.is_a?(Fiber)
+      result.resume
+      if result.alive?
+        @fiber = result
+        return false
+      end
+    end
     return true
   end
 end

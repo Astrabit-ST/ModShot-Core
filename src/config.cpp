@@ -95,7 +95,8 @@ void Config::read(int argc, char *argv[])
 	PO_DESC(allowSymlinks, bool, false) \
 	PO_DESC(iconPath, std::string, "") \
 	PO_DESC(SE.sourceCount, int, 6) \
-	PO_DESC(pathCache, bool, true)
+	PO_DESC(audioChannels, int, 30) \
+	PO_DESC(pathCache, bool, true) \
 
 // Not gonna take your shit boost
 #define GUARD_ALL( exp ) try { exp } catch(...) {}
@@ -181,8 +182,10 @@ void Config::read(int argc, char *argv[])
 
 	//Hardcode some ini/version settings
 	rgssVersion = 1;
-	game.title = "OneShot:Fading memory";
-	game.scripts = "Data/Scripts.rxdata";
+	game.title = "OneShot";
+	game.scripts = "Data/xScripts.rxdata";
+	gameFolder = "..";
+	
 	defScreenW = 640;
 	defScreenH = 480;
 
