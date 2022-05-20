@@ -42,6 +42,8 @@
 
 #include <sigc++/connection.h>
 
+#include "binding-util.h"
+
 #ifndef M_PI
 	#define M_PI 3.14159265358979323846
 #endif
@@ -76,6 +78,8 @@ struct SpritePrivate
 	Color *color;
 	Tone *tone;
 
+	VALUE* shaderArr;
+
 	struct
 	{
 		int amp;
@@ -107,7 +111,8 @@ struct SpritePrivate
 	      isVisible(false),
 	      obscured(false),
 	      color(&tmp.color),
-	      tone(&tmp.tone)
+	      tone(&tmp.tone),
+		  shaderArr(0)
 
 	{
 		sceneRect.x = sceneRect.y = 0;
@@ -354,6 +359,7 @@ DEF_ATTR_RD_SIMPLE(Sprite, WaveAmp,    int,     p->wave.amp)
 DEF_ATTR_RD_SIMPLE(Sprite, WaveLength, int,     p->wave.length)
 DEF_ATTR_RD_SIMPLE(Sprite, WaveSpeed,  int,     p->wave.speed)
 DEF_ATTR_RD_SIMPLE(Sprite, WavePhase,  float,   p->wave.phase)
+DEF_ATTR_RD_SIMPLE(Sprite, ShaderArr,  VALUE*,  p->shaderArr)
 
 DEF_ATTR_SIMPLE(Sprite, BushOpacity, int,     p->bushOpacity)
 DEF_ATTR_SIMPLE(Sprite, Opacity,     int,     p->opacity)
@@ -610,6 +616,10 @@ void Sprite::draw()
 		shader.setSpriteMat(p->trans.getMatrix());
 		shader.applyViewportProj();
 		base = &shader;
+	}
+	
+	if (p->shaderArr) {
+		Debug() << "Sprite has arr";
 	}
 
 	glState.blendMode.pushSet(p->blendType);
