@@ -401,23 +401,6 @@ RB_METHOD(bitmapBlur)
 	return Qnil;
 }
 
-RB_METHOD(bitmapMask)
-{
-	VALUE bitmapObj;
-	Bitmap *bitmap;
-
-	int x = 0;
-	int y = 0;
-	rb_get_args(argc, argv, "o|ii", &bitmapObj, &x, &y RB_ARG_END);
-	bitmap = getPrivateDataCheck<Bitmap>(bitmapObj, BitmapType);
-
-	Bitmap *b = getPrivateData<Bitmap>(self);
-
-	b->mask(bitmap, x, y);
-
-	return Qnil;
-}
-
 RB_METHOD(bitmapRadialBlur)
 {
 	Bitmap *b = getPrivateData<Bitmap>(self);
@@ -474,7 +457,6 @@ bitmapBindingInit()
 	_rb_define_method(klass, "hue_change",  bitmapHueChange);
 	_rb_define_method(klass, "draw_text",   bitmapDrawText);
 	_rb_define_method(klass, "text_size",   bitmapTextSize);
-	_rb_define_method(klass, "mask",   		bitmapMask);
 
 	//if (rgssVer >= 2)
 	//{

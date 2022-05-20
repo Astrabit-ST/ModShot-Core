@@ -1,20 +1,13 @@
 embedded_shaders = [
-    'binary_glitch.frag',
     'bitmapBlit.frag',
     'blur.frag',
     'blurH.vert',
     'blurV.vert',
-    'chronos.frag',
     'common.h',
-    'crt_sprite.frag',
-    'crt.frag',
-    'cubic_lens.frag',
     'flashMap.frag',
     'flatColor.frag',
     'gray.frag',
     'hue.frag',
-    'mask.frag',
-    'mask.vert',
     'minimal.vert',
     'obscured.frag',
     'plane.frag',
@@ -30,8 +23,6 @@ embedded_shaders = [
     'tilemap.vert',
     'trans.frag',
     'transSimple.frag',
-    'water.frag',
-    'zoom.vert'
 ]
 
 embedded_shaders_f = files(embedded_shaders)

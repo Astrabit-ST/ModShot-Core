@@ -29,6 +29,7 @@ binding_source = [files(
     'oneshot-binding.cpp',
     'plane-binding.cpp',
     'screen-binding.cpp',
+    'shader-binding.cpp',
     'sprite-binding.cpp',
     'steam-binding.cpp',
     'table-binding.cpp',

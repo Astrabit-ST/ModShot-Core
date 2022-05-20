@@ -72,7 +72,6 @@ struct SpritePrivate
 	bool isVisible;
 
 	bool obscured;
-	bool scanned;
 
 	Color *color;
 	Tone *tone;
@@ -107,7 +106,6 @@ struct SpritePrivate
 	      blendType(BlendNormal),
 	      isVisible(false),
 	      obscured(false),
-		  scanned(false),
 	      color(&tmp.color),
 	      tone(&tmp.tone)
 
@@ -363,7 +361,6 @@ DEF_ATTR_SIMPLE(Sprite, SrcRect,     Rect&,  *p->srcRect)
 DEF_ATTR_SIMPLE(Sprite, Color,       Color&, *p->color)
 DEF_ATTR_SIMPLE(Sprite, Tone,        Tone&,  *p->tone)
 DEF_ATTR_SIMPLE(Sprite, Obscured,    bool,    p->obscured)
-DEF_ATTR_SIMPLE(Sprite, Scanned,    bool,    p->scanned)
 
 void Sprite::setBitmap(Bitmap *bitmap)
 {
@@ -571,15 +568,6 @@ void Sprite::draw()
 		shader.bind();
 		shader.applyViewportProj();
 		shader.setObscured(shState->graphics().obscuredTex());
-		base = &shader;
-	}
-	else if (p->scanned)
-	{
-		ScannedShaderSprite &shader = shState->shaders().scanned_sprite;
-		shader.bind();
-		shader.applyViewportProj();
-		shader.setSpriteMat(p->trans.getMatrix());
-
 		base = &shader;
 	}
 	else if (renderEffect)
