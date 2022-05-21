@@ -6,12 +6,11 @@ DEF_TYPE(CompiledShader);
 
 RB_METHOD(comiledShaderInitialize) {
     const char* contents;
-    VALUE typeSym;
     VALUE aryArgs;
 
-    rb_get_args(argc, argv, "zoo", &contents, &typeSym, &aryArgs);
+    rb_get_args(argc, argv, "zo", &contents, &aryArgs RB_ARG_END);
 
-    CompiledShader *shader = new CompiledShader(contents, typeSym == rb_intern("vert"), aryArgs);
+    CompiledShader *shader = new CompiledShader(contents, aryArgs);
     setPrivateData(self, shader);
 
     rb_ary_freeze(aryArgs);
@@ -28,7 +27,9 @@ RB_METHOD(compiledShaderArgs) {
 }
 
 void compiledShaderBindingInit() {
-    compiledShaderClass = rb_define_class_under(shaderClass, "CompiledShader", rb_cObject);
+    VALUE klass = rb_define_class("CompiledShader", rb_cObject);
+    rb_define_alloc_func(klass, classAllocate<&CompiledShaderType>);
 
-    _rb_define_method(compiledShaderClass, "args", compiledShaderArgs);
+    _rb_define_method(klass, "initialize", comiledShaderInitialize);
+    _rb_define_method(klass, "args", compiledShaderArgs);
 }

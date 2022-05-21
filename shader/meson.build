@@ -23,6 +23,7 @@ embedded_shaders = [
     'tilemap.vert',
     'trans.frag',
     'transSimple.frag',
+    'rb_simple.vert'
 ]
 
 embedded_shaders_f = files(embedded_shaders)

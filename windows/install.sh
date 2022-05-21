@@ -37,6 +37,7 @@ shopt -s dotglob
 
 echo "Relocating dependencies..."
 DESTDIR="${MESON_INSTALL_PREFIX}/lib"
+rm -r $DESTDIR
 mkdir -p $DESTDIR
 copy_dependencies $BINARY $BINARY
 

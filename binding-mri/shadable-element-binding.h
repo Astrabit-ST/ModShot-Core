@@ -1,10 +1,7 @@
 #ifndef SHADABLEBINDING_H
-#define SHADABLEBIDNING_H
+#define SHADABLEBINDING_H
 
 #include "binding-util.h"
-
-VALUE shaderClass;
-VALUE compiledShaderClass;
 
 RB_METHOD(shadableGetShaders) {
 
@@ -22,7 +19,7 @@ void shadableElementIntialize(VALUE self, C *se) {
     se->setShaderArr(&ary);
 }
 
-void shadableElementBindingInit(VALUE klass) {
+inline void shadableElementBindingInit(VALUE klass) {
     _rb_define_method(klass, "shaders", shadableGetShaders);
 }
 

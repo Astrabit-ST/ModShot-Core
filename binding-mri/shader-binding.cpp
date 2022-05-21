@@ -6,7 +6,7 @@ DEF_TYPE_CUSTOMNAME(CustomShader, "Shader");
 
 RB_METHOD(shaderInitialize) {
     VALUE compiledShaderObj;
-    VALUE hashArgs;
+    VALUE hashArgs = 0;
     
     rb_get_args(argc, argv, "o|o", &compiledShaderObj, &hashArgs);
 
@@ -25,18 +25,31 @@ RB_METHOD(shaderInitialize) {
 }
 
 RB_METHOD(shaderCompile) {
-    VALUE passedArgs [3];
+    VALUE contents;
+    VALUE typeSym;
+    VALUE aryArgs;
 
-    rb_get_args(argc, argv, "ooo", &passedArgs[0], &passedArgs[1], &passedArgs[2]);
+    rb_get_args(argc, argv, "ooo", &contents, &typeSym, &aryArgs RB_ARG_END);
 
-    VALUE shaderObj = rb_class_new_instance(3, passedArgs, compiledShaderClass);
+    VALUE passedArgs[] = {contents, typeSym, aryArgs};
+
+    VALUE classConst = rb_const_get(rb_cObject, rb_intern("CompiledShader"));
+    VALUE shaderObj = rb_class_new_instance(3, passedArgs, classConst);
 
     return shaderObj;
 }
 
-void shaderBindingInit() {
-    shaderClass = rb_define_class("Shader", rb_cObject);
+RB_METHOD(shaderArgs) {
+    RB_UNUSED_PARAM;
 
-    _rb_define_method(shaderClass, "initialize", shaderInitialize);
-    _rb_define_module_function(shaderClass, "compile", shaderCompile);
+    return rb_iv_get(self, "args");
+}
+
+void shaderBindingInit() {
+    VALUE klass = rb_define_class("Shader", rb_cObject);
+    rb_define_alloc_func(klass, classAllocate<&CustomShaderType>);
+
+    _rb_define_method(klass, "initialize", shaderInitialize);
+    _rb_define_module_function(klass, "compile", shaderCompile);
+    _rb_define_method(klass, "args", shaderArgs);
 }
