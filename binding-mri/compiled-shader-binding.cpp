@@ -4,6 +4,23 @@
 
 DEF_TYPE(CompiledShader);
 
+RB_METHOD(comiledShaderInitialize) {
+    const char* contents;
+    VALUE typeSym;
+    VALUE aryArgs;
+
+    rb_get_args(argc, argv, "zoo", &contents, &typeSym, &aryArgs);
+
+    CompiledShader *shader = new CompiledShader(contents, typeSym == rb_intern("vert"), aryArgs);
+    setPrivateData(self, shader);
+
+    rb_ary_freeze(aryArgs);
+
+    rb_iv_set(self, "args", aryArgs);
+
+    return self;
+}
+
 RB_METHOD(compiledShaderArgs) {
     RB_UNUSED_PARAM;
 

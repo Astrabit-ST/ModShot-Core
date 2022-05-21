@@ -25,15 +25,11 @@ RB_METHOD(shaderInitialize) {
 }
 
 RB_METHOD(shaderCompile) {
-    const char* contents;
-    VALUE typeSym;
-    VALUE varArr;
+    VALUE passedArgs [3];
 
-    rb_get_args(argc, argv, "zoo", &contents, &typeSym, &varArr);
+    rb_get_args(argc, argv, "ooo", &passedArgs[0], &passedArgs[1], &passedArgs[2]);
 
-    CompiledShader *shader = new CompiledShader(contents, typeSym == rb_intern("vert"), varArr);
-    VALUE shaderObj = rb_class_new_instance(0, new VALUE[0], compiledShaderClass);
-    setPrivateData(shaderObj, shader);
+    VALUE shaderObj = rb_class_new_instance(3, passedArgs, compiledShaderClass);
 
     return shaderObj;
 }
