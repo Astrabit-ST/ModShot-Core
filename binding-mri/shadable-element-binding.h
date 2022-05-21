@@ -3,6 +3,9 @@
 
 #include "binding-util.h"
 
+VALUE shaderClass;
+VALUE compiledShaderClass;
+
 RB_METHOD(shadableGetShaders) {
 
     RB_UNUSED_PARAM;

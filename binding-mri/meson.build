@@ -14,6 +14,7 @@ global_include_dirs += include_directories('.')
 binding_source = [files(
     'aleffect-binding.cpp',
     'audio-binding.cpp',
+    'compiled-shader-binding.cpp',
     'binding-mri.cpp',
     'binding-util.cpp',
     'bitmap-binding.cpp',
