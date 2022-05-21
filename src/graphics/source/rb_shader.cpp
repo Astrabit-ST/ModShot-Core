@@ -6,9 +6,11 @@
 #include "rb_simple.vert.xxd"
 
 #include <string>
+#include <map>
 
 CompiledShader::CompiledShader(const char* contents, VALUE args):
-    contents(contents)
+    contents(contents),
+    vertContents((const char*) ___shader_rb_simple_vert)
 {
     fragShader = gl.CreateShader(GL_FRAGMENT_SHADER);
     vertShader = gl.CreateShader(GL_VERTEX_SHADER);
@@ -16,14 +18,22 @@ CompiledShader::CompiledShader(const char* contents, VALUE args):
     program = gl.CreateProgram();
     
     compileShader(contents, fragShader, program, false);
-    compileShader((const char*) ___shader_rb_simple_vert, vertShader, program, true);
+    compileShader(vertContents, vertShader, program, true);
+    setupArgs(args);
 }
 
-CustomShader::CustomShader(CompiledShader shader, VALUE* args):
-    shader(shader),
-    args(args)
+CompiledShader::CompiledShader(const char* contents, VALUE args, const char* vertContents):
+    contents(contents),
+    vertContents(vertContents)
 {
+    fragShader = gl.CreateShader(GL_FRAGMENT_SHADER);
+    vertShader = gl.CreateShader(GL_VERTEX_SHADER);
 
+    program = gl.CreateProgram();
+    
+    compileShader(contents, fragShader, program, false);
+    compileShader(vertContents, vertShader, program, true);
+    setupArgs(args);
 }
 
 std::string getShaderLog(GLuint shader)
@@ -93,4 +103,30 @@ void CompiledShader::compileShader(const char* contents, GLuint shader, GLuint p
         rb_raise(rb_eRuntimeError, "Shader linking failed with: %s", getShaderLog(program).c_str());
         return;
     }
+}
+
+void CompiledShader::setupArgs(VALUE pargs) {
+    long argc = rb_array_len(pargs);
+    args = std::map<const char*, GLint>();
+
+    for (long i = 0; i < argc; ++i) {
+        VALUE arg = rb_ary_entry(pargs, i);
+        const char* name = rb_string_value_cstr(&arg);
+        args[name] = gl.GetUniformLocation(program, name);
+    }
+}
+
+const char* CompiledShader::getContents() {
+    return contents;
+}
+
+const char* CompiledShader::getVertContents() {
+    return vertContents;
+}
+
+CustomShader::CustomShader(CompiledShader shader, VALUE* args):
+    shader(shader),
+    args(args)
+{
+
 }

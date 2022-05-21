@@ -26,12 +26,12 @@ RB_METHOD(shaderInitialize) {
 
 RB_METHOD(shaderCompile) {
     VALUE contents;
-    VALUE typeSym;
     VALUE aryArgs;
+    VALUE vertContents = 0;
 
-    rb_get_args(argc, argv, "ooo", &contents, &typeSym, &aryArgs RB_ARG_END);
+    rb_get_args(argc, argv, "oo|o", &contents, &aryArgs RB_ARG_END);
 
-    VALUE passedArgs[] = {contents, typeSym, aryArgs};
+    VALUE passedArgs[] = {contents, aryArgs, vertContents};
 
     VALUE classConst = rb_const_get(rb_cObject, rb_intern("CompiledShader"));
     VALUE shaderObj = rb_class_new_instance(3, passedArgs, classConst);
