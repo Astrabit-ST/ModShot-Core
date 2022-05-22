@@ -12,6 +12,8 @@ RB_METHOD(shaderInitialize) {
 
     CompiledShader *compiledShader = getPrivateData<CompiledShader>(compiledShaderObj);
 
+    rb_iv_set(self, "compiled_shader", compiledShaderObj);
+
     if (!hashArgs)
         hashArgs = rb_hash_new();
 
@@ -45,6 +47,12 @@ RB_METHOD(shaderArgs) {
     return rb_iv_get(self, "args");
 }
 
+RB_METHOD(shaderGetCompiledShader) {
+    RB_UNUSED_PARAM;
+
+    return rb_iv_get(self, "compiled_shader");
+}
+
 void shaderBindingInit() {
     VALUE klass = rb_define_class("Shader", rb_cObject);
     rb_define_alloc_func(klass, classAllocate<&CustomShaderType>);
@@ -52,4 +60,5 @@ void shaderBindingInit() {
     _rb_define_method(klass, "initialize", shaderInitialize);
     _rb_define_module_function(klass, "compile", shaderCompile);
     _rb_define_method(klass, "args", shaderArgs);
+    _rb_define_method(klass, "compiled_shader", shaderGetCompiledShader);
 }

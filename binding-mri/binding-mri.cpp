@@ -94,6 +94,8 @@ void screenBindingInit();
 void compiledShaderBindingInit();
 void shaderBindingInit();
 
+void etc_internalBindingInit();
+
 RB_METHOD(mriPrint);
 RB_METHOD(mriP);
 RB_METHOD(mkxpDataDirectory);
@@ -135,6 +137,8 @@ static void mriBindingInit()
 
 	shaderBindingInit();
 	compiledShaderBindingInit();
+	
+	etc_internalBindingInit();
 
 	rb_define_global_const("MODSHOT_VERSION", rb_str_new_cstr(MODSHOT_VERSION));
 	if (rgssVer >= 3)

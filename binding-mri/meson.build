@@ -19,6 +19,7 @@ binding_source = [files(
     'binding-util.cpp',
     'bitmap-binding.cpp',
     'etc-binding.cpp',
+    'etc-internal-binding.cpp',
     'filesystem-binding.cpp',
     'font-binding.cpp',
     'graphics-binding.cpp',
