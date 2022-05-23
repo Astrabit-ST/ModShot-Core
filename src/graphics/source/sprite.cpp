@@ -44,6 +44,8 @@
 
 #include "binding-util.h"
 
+#include "rb_shader.h"
+
 #ifndef M_PI
 	#define M_PI 3.14159265358979323846
 #endif
@@ -78,7 +80,7 @@ struct SpritePrivate
 	Color *color;
 	Tone *tone;
 
-	VALUE* shaderArr;
+	VALUE shaderArr;
 
 	struct
 	{
@@ -366,7 +368,7 @@ DEF_ATTR_SIMPLE(Sprite, SrcRect,     Rect&,  *p->srcRect)
 DEF_ATTR_SIMPLE(Sprite, Color,       Color&, *p->color)
 DEF_ATTR_SIMPLE(Sprite, Tone,        Tone&,  *p->tone)
 DEF_ATTR_SIMPLE(Sprite, Obscured,    bool,    p->obscured)
-DEF_ATTR_SIMPLE(Sprite, ShaderArr,  VALUE*, p->shaderArr)
+DEF_ATTR_SIMPLE(Sprite, ShaderArr,  VALUE, p->shaderArr)
 
 void Sprite::setBitmap(Bitmap *bitmap)
 {
@@ -619,7 +621,26 @@ void Sprite::draw()
 	}
 	
 	if (p->shaderArr) {
+		long size = rb_array_len(p->shaderArr);
 
+		for (long i = 0; i < size; i++) {
+			VALUE value = rb_ary_entry(p->shaderArr, i);
+
+			if (rb_obj_class(value) != rb_const_get(rb_cObject, rb_intern("Shader")))
+				rb_raise(rb_eTypeError, "Wrong argument type (expected Shader), got %s", rb_obj_classname(value));
+			
+			CustomShader shader = *getPrivateData<CustomShader>(value);
+			CompiledShader compiled = shader.getShader();
+
+			compiled.bind();
+			shader.applyArgs();
+			compiled.applyViewportProj();
+
+			if (shader.supportsSpriteMat()) 
+				shader.setSpriteMat(p->trans.getMatrix());
+
+			base = &compiled;
+		}
 	}
 
 	glState.blendMode.pushSet(p->blendType);

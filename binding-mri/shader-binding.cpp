@@ -4,10 +4,11 @@
 
 DEF_TYPE_CUSTOMNAME(CustomShader, "Shader");
 
-RB_METHOD(shaderInitialize) {
+RB_METHOD(shaderInitialize)
+{
     VALUE compiledShaderObj;
     VALUE hashArgs = 0;
-    
+
     rb_get_args(argc, argv, "o|o", &compiledShaderObj, &hashArgs);
 
     CompiledShader *compiledShader = getPrivateData<CompiledShader>(compiledShaderObj);
@@ -19,14 +20,15 @@ RB_METHOD(shaderInitialize) {
 
     rb_iv_set(self, "args", hashArgs);
 
-    CustomShader *shader = new CustomShader(*compiledShader, &hashArgs);
+    CustomShader *shader = new CustomShader(*compiledShader, hashArgs);
 
     setPrivateData(self, shader);
 
     return self;
 }
 
-RB_METHOD(shaderCompile) {
+RB_METHOD(shaderCompile)
+{
     VALUE contents;
     VALUE aryArgs;
     VALUE vertContents = 0;
@@ -41,19 +43,36 @@ RB_METHOD(shaderCompile) {
     return shaderObj;
 }
 
-RB_METHOD(shaderArgs) {
+RB_METHOD(shaderArgs)
+{
     RB_UNUSED_PARAM;
 
     return rb_iv_get(self, "args");
 }
 
-RB_METHOD(shaderGetCompiledShader) {
+RB_METHOD(shaderGetCompiledShader)
+{
     RB_UNUSED_PARAM;
 
     return rb_iv_get(self, "compiled_shader");
 }
 
-void shaderBindingInit() {
+RB_METHOD(shaderStringify)
+{
+    RB_UNUSED_PARAM;
+
+    CustomShader *shader = getPrivateData<CustomShader>(self);
+
+    return rb_sprintf(
+        "<#Shader:%p private_shader=%p args=%" PRIsVALUE " compiled_shader=%" PRIsVALUE ">",
+        (void *)self,
+        (void *)shader,
+        rb_iv_get(self, "args"),
+        rb_iv_get(self, "compiled_shader"));
+}
+
+void shaderBindingInit()
+{
     VALUE klass = rb_define_class("Shader", rb_cObject);
     rb_define_alloc_func(klass, classAllocate<&CustomShaderType>);
 
@@ -61,4 +80,6 @@ void shaderBindingInit() {
     _rb_define_module_function(klass, "compile", shaderCompile);
     _rb_define_method(klass, "args", shaderArgs);
     _rb_define_method(klass, "compiled_shader", shaderGetCompiledShader);
+    _rb_define_method(klass, "to_s", shaderStringify);
+    _rb_define_method(klass, "inspect", shaderStringify);
 }

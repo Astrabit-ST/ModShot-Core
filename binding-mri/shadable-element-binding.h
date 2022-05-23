@@ -16,7 +16,7 @@ void shadableElementIntialize(VALUE self, C *se) {
 
     rb_iv_set(self, "shaders", ary);
 
-    se->setShaderArr(&ary);
+    se->setShaderArr(ary);
 }
 
 inline void shadableElementBindingInit(VALUE klass) {
