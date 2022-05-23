@@ -33,7 +33,7 @@ RB_METHOD(shaderCompile)
     VALUE aryArgs;
     VALUE vertContents = 0;
 
-    rb_get_args(argc, argv, "oo|o", &contents, &aryArgs RB_ARG_END);
+    rb_get_args(argc, argv, "oo|o", &contents, &aryArgs, &vertContents RB_ARG_END);
 
     VALUE passedArgs[] = {contents, aryArgs, vertContents};
 

@@ -3,7 +3,7 @@
 #include "gl-util.h"
 #include "binding-util.h"
 #include "sharedstate.h"
-
+#include "shader.h"
 #include "rb_simple.vert.xxd"
 
 #include <string>
@@ -20,6 +20,8 @@ CompiledShader::CompiledShader(const char *contents, VALUE args) : contents(cont
     compileShader(contents, fragShader, program, false);
     compileShader(vertContents, vertShader, program, true);
     setupArgs(args);
+
+    ShaderBase::init();
 }
 
 CompiledShader::CompiledShader(const char *contents, VALUE args, const char *vertContents) : contents(contents),
@@ -33,6 +35,8 @@ CompiledShader::CompiledShader(const char *contents, VALUE args, const char *ver
     compileShader(contents, fragShader, program, false);
     compileShader(vertContents, vertShader, program, true);
     setupArgs(args);
+
+    ShaderBase::init();
 }
 
 std::string getShaderLog(GLuint shader)
@@ -152,6 +156,7 @@ GLint CustomShader::getUniform(const char *name)
 
 bool CustomShader::supportsSpriteMat()
 {
+    GLint u = getUniform("spriteMat");
     return getUniform("spriteMat") != -1;
 }
 
