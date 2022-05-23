@@ -20,7 +20,7 @@ RB_METHOD(shaderInitialize)
 
     rb_iv_set(self, "args", hashArgs);
 
-    CustomShader *shader = new CustomShader(*compiledShader, hashArgs);
+    CustomShader *shader = new CustomShader(compiledShader, hashArgs);
 
     setPrivateData(self, shader);
 

@@ -140,14 +140,14 @@ GLuint CompiledShader::getProgram()
     return program;
 }
 
-CustomShader::CustomShader(CompiledShader shader, VALUE args) : shader(shader),
+CustomShader::CustomShader(CompiledShader* shader, VALUE args) : shader(shader),
                                                                 args(args)
 {
 }
 
 GLint CustomShader::getUniform(const char *name)
 {
-    return gl.GetUniformLocation(shader.getProgram(), name);
+    return gl.GetUniformLocation(shader->getProgram(), name);
 }
 
 bool CustomShader::supportsSpriteMat()
@@ -162,7 +162,7 @@ void CustomShader::setSpriteMat(const float value[16])
 
 void CustomShader::applyArgs()
 {
-    std::map<const char *, GLint> args = shader.getArgs();
+    std::map<const char *, GLint> args = shader->getArgs();
     std::map<const char *, GLint>::iterator it;
     for (it = args.begin(); it != args.end(); it++)
     {
@@ -185,7 +185,7 @@ void CustomShader::applyArgs()
     }
 }
 
-CompiledShader CustomShader::getShader()
+CompiledShader* CustomShader::getShader()
 {
     return shader;
 }

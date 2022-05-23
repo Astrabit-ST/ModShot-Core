@@ -30,17 +30,17 @@ private:
 class CustomShader
 {
 public:
-    CustomShader(CompiledShader shader, VALUE args);
+    CustomShader(CompiledShader* shader, VALUE args);
 
     void applyArgs();
 
     GLint getUniform(const char *name);
     bool supportsSpriteMat();
     void setSpriteMat(const float value[16]);
-    CompiledShader getShader();
+    CompiledShader* getShader();
 
 private:
-    CompiledShader shader;
+    CompiledShader* shader;
     VALUE args;
 };
 

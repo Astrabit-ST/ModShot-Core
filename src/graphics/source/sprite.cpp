@@ -629,17 +629,17 @@ void Sprite::draw()
 			if (rb_obj_class(value) != rb_const_get(rb_cObject, rb_intern("Shader")))
 				rb_raise(rb_eTypeError, "Wrong argument type (expected Shader), got %s", rb_obj_classname(value));
 			
-			CustomShader shader = *getPrivateData<CustomShader>(value);
-			CompiledShader compiled = shader.getShader();
+			CustomShader* shader = getPrivateData<CustomShader>(value);
+			CompiledShader* compiled = shader->getShader();
 
-			compiled.bind();
-			shader.applyArgs();
-			compiled.applyViewportProj();
+			compiled->bind();
+			shader->applyArgs();
+			compiled->applyViewportProj();
 
-			if (shader.supportsSpriteMat()) 
-				shader.setSpriteMat(p->trans.getMatrix());
+			if (shader->supportsSpriteMat()) 
+				shader->setSpriteMat(p->trans.getMatrix());
 
-			base = &compiled;
+			base = compiled;
 		}
 	}
 
