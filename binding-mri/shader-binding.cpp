@@ -8,8 +8,9 @@ RB_METHOD(shaderInitialize)
 {
     VALUE compiledShaderObj;
     VALUE hashArgs = 0;
+    VALUE hashTexUnits = 0;
 
-    rb_get_args(argc, argv, "o|o", &compiledShaderObj, &hashArgs);
+    rb_get_args(argc, argv, "o|oo", &compiledShaderObj, &hashArgs, &hashTexUnits RB_ARG_END);
 
     CompiledShader *compiledShader = getPrivateData<CompiledShader>(compiledShaderObj);
 
@@ -18,9 +19,13 @@ RB_METHOD(shaderInitialize)
     if (!hashArgs)
         hashArgs = rb_hash_new();
 
-    rb_iv_set(self, "args", hashArgs);
+    if (!hashTexUnits)
+        hashTexUnits = rb_hash_new();
 
-    CustomShader *shader = new CustomShader(compiledShader, hashArgs);
+    rb_iv_set(self, "args", hashArgs);
+    rb_iv_set(self, "tex_units", hashTexUnits);
+
+    CustomShader *shader = new CustomShader(compiledShader, hashArgs, hashTexUnits);
 
     setPrivateData(self, shader);
 

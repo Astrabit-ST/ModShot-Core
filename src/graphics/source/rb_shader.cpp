@@ -5,6 +5,7 @@
 #include "sharedstate.h"
 #include "shader.h"
 #include "rb_simple.vert.xxd"
+#include "bitmap.h"
 
 #include <string>
 #include <map>
@@ -144,8 +145,8 @@ GLuint CompiledShader::getProgram()
     return program;
 }
 
-CustomShader::CustomShader(CompiledShader* shader, VALUE args) : shader(shader),
-                                                                args(args)
+CustomShader::CustomShader(CompiledShader *shader, VALUE args, VALUE texUnits) : shader(shader),
+                                                                                 args(args), texUnits(texUnits)
 {
 }
 
@@ -156,7 +157,6 @@ GLint CustomShader::getUniform(const char *name)
 
 bool CustomShader::supportsSpriteMat()
 {
-    GLint u = getUniform("spriteMat");
     return getUniform("spriteMat") != -1;
 }
 
@@ -164,6 +164,11 @@ void CustomShader::setSpriteMat(const float value[16])
 {
     gl.UniformMatrix4fv(getUniform("spriteMat"), 1, GL_FALSE, value);
 }
+
+#define IS_A(klass) if ( \
+    rb_obj_is_kind_of(   \
+        value,           \
+        rb_path2class(klass)))
 
 void CustomShader::applyArgs()
 {
@@ -174,23 +179,54 @@ void CustomShader::applyArgs()
         VALUE value = rb_hash_aref(this->args, rb_str_new_cstr(it->first));
 
         if (value == Qnil)
-        {
             rb_raise(rb_eIndexError, "No such argument: %s", it->first);
-        }
 
-        const char *class_name = rb_obj_classname(value);
-        if (class_name)
+        if (it->second == -1)
+            rb_raise(rb_eIndexError, "No such uniform declared in shader: %s", it->first);
+
+        IS_A("Float")
         {
+            gl.Uniform1f(it->second, NUM2DBL(value));
+        }
+        else IS_A("Integer")
+        {
+            gl.Uniform1i(it->second, NUM2INT(value));
+        }
+        else IS_A("Vec2")
+        {
+            Vec2 *vec2 = getPrivateData<Vec2>(value);
+            gl.Uniform2f(it->second, vec2->x, vec2->y);
+        }
+        else IS_A("Vec4")
+        {
+            Vec4 *vec4 = getPrivateData<Vec4>(value);
+            gl.Uniform4f(it->second, vec4->x, vec4->y, vec4->z, vec4->w);
+        }
+        else IS_A("Bitmap")
+        {
+            VALUE unitObj = rb_hash_fetch(texUnits, rb_str_new_cstr(it->first));
+
+            if (unitObj == Qnil)
+                rb_raise(rb_eIndexError, "No such texture unit: %s, please supply this when creating the shader", it->first);
+
+            unsigned unitNum = NUM2UINT(unitObj);
+            Bitmap *bitmap = getPrivateData<Bitmap>(value);
+
+            GLenum texUnit = GL_TEXTURE0 + unitNum;
+
+            gl.ActiveTexture(texUnit);
+            gl.BindTexture(GL_TEXTURE_2D, bitmap->getGLTypes().tex.gl);
+            gl.Uniform1i(it->second, unitNum);
+            gl.ActiveTexture(GL_TEXTURE0);
         }
         else
         {
-            rb_raise(rb_eArgError, "Argument %s is of type %s, which is not a supported type", it->first, class_name);
-            break;
+            rb_raise(rb_eArgError, "Argument %s is of type %s, which is not a supported type", it->first, rb_obj_classname(value));
         }
     }
 }
 
-CompiledShader* CustomShader::getShader()
+CompiledShader *CustomShader::getShader()
 {
     return shader;
 }

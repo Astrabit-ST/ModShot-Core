@@ -30,7 +30,7 @@ private:
 class CustomShader
 {
 public:
-    CustomShader(CompiledShader* shader, VALUE args);
+    CustomShader(CompiledShader* shader, VALUE args, VALUE texUnits);
 
     void applyArgs();
 
@@ -42,6 +42,7 @@ public:
 private:
     CompiledShader* shader;
     VALUE args;
+    VALUE texUnits;
 };
 
 #endif
