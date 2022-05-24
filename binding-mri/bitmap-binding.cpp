@@ -27,6 +27,8 @@
 #include "binding-util.h"
 #include "binding-types.h"
 
+#include "rb_shader.h"
+
 DEF_TYPE(Bitmap);
 
 static const char *objAsStringPtr(VALUE obj)
@@ -434,6 +436,20 @@ RB_METHOD(bitmapInitializeCopy)
 }
 
 
+RB_METHOD(bitmapShade)
+{
+	Bitmap *b = getPrivateData<Bitmap>(self);
+
+	VALUE shaderObj;
+	rb_get_args(argc, argv, "o", &shaderObj RB_ARG_END);
+
+	CustomShader *shader = getPrivateDataCheck<CustomShader>(shaderObj, CustomShaderType);
+
+	b->shade(shader);
+
+	return Qnil;
+}
+
 void
 bitmapBindingInit()
 {
@@ -465,6 +481,8 @@ bitmapBindingInit()
 	_rb_define_method(klass, "blur",               bitmapBlur);
 	_rb_define_method(klass, "radial_blur",        bitmapRadialBlur);
 	//}
+
+	_rb_define_method(klass, "shade", bitmapShade);
 
 	INIT_PROP_BIND(Bitmap, Font, "font");
 }

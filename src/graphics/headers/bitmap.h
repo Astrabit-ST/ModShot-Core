@@ -26,6 +26,8 @@
 #include "etc-internal.h"
 #include "etc.h"
 
+#include "rb_shader.h"
+
 #include <sigc++/signal.h>
 
 class Font;
@@ -76,6 +78,7 @@ public:
 	void blur();
 	void radialBlur(int angle, int divisions);
 	
+	void shade(CustomShader* shader);
 
 	void clear();
 
