@@ -1,6 +1,7 @@
 #include "binding-util.h"
 #include "rb_shader.h"
 #include "shadable-element-binding.h"
+#include "binding-types.h"
 
 DEF_TYPE_CUSTOMNAME(CustomShader, "Shader");
 

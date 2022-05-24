@@ -37,6 +37,7 @@
 
 #include "binding-util.h"
 #include "rb_shader.h"
+#include "binding-types.h"
 
 #include <sigc++/connection.h>
 
@@ -325,11 +326,8 @@ void Plane::draw()
 
 		for (long i = 0; i < size; i++) {
 			VALUE value = rb_ary_entry(p->shaderArr, i);
-
-			if (rb_obj_class(value) != rb_const_get(rb_cObject, rb_intern("Shader")))
-				rb_raise(rb_eTypeError, "Wrong argument type (expected Shader), got %s", rb_obj_classname(value));
 			
-			CustomShader* shader = getPrivateData<CustomShader>(value);
+			CustomShader* shader = getPrivateDataCheck<CustomShader>(value, CustomShaderType);
 			CompiledShader* compiled = shader->getShader();
 
 			compiled->bind();
