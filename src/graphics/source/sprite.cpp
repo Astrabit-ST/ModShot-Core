@@ -633,12 +633,11 @@ void Sprite::draw()
 			CompiledShader* compiled = shader->getShader();
 
 			compiled->bind();
+			compiled->applyViewportProj();
 			shader->applyArgs();
 
 			if (shader->supportsSpriteMat()) 
 				shader->setSpriteMat(p->trans.getMatrix());
-
-			compiled->applyViewportProj();
 
 			base = compiled;
 		}

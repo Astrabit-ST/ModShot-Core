@@ -11,7 +11,7 @@ RB_METHOD(shadableGetShaders) {
 }
 
 template<class C>
-void shadableElementIntialize(VALUE self, C *se) {
+void shadableElementInitialize(VALUE self, C *se) {
     VALUE ary = rb_ary_new();
 
     rb_iv_set(self, "shaders", ary);

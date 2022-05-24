@@ -36,7 +36,7 @@ RB_METHOD(spriteInitialize)
 {
 	Sprite *s = viewportElementInitialize<Sprite>(argc, argv, self);
 
-	shadableElementIntialize<Sprite>(self, s);
+	shadableElementInitialize<Sprite>(self, s);
 
 	setPrivateData(self, s);
 

@@ -254,8 +254,8 @@ public:
 				CompiledShader *compiled = shader->getShader();
 
 				compiled->bind();
-				shader->applyArgs();
 				compiled->applyViewportProj();
+				shader->applyArgs();
 				compiled->setTexSize(screenRect.size());
 
 				TEX::bind(pp.backBuffer().tex);

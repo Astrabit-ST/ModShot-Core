@@ -35,6 +35,9 @@
 #include "shader.h"
 #include "glstate.h"
 
+#include "binding-util.h"
+#include "rb_shader.h"
+
 #include <sigc++/connection.h>
 
 static float fwrap(float value, float range)
@@ -68,6 +71,8 @@ struct PlanePrivate
 	sigc::connection prepareCon;
 	sigc::connection srcRectCon;
 
+	VALUE shaderArr;
+
 	PlanePrivate()
 	    : bitmap(0),
 	      srcRect(&tmp.rect),
@@ -77,7 +82,8 @@ struct PlanePrivate
 	      tone(&tmp.tone),
 	      ox(0), oy(0),
 	      zoomX(1), zoomY(1),
-	      quadSourceDirty(false)
+	      quadSourceDirty(false),
+		  shaderArr(0)
 	{
 		updateSrcRectCon();
 		prepareCon = shState->prepareDraw.connect
@@ -186,6 +192,7 @@ DEF_ATTR_SIMPLE(Plane, SrcRect,   Rect&,  *p->srcRect)
 DEF_ATTR_SIMPLE(Plane, Opacity,   int,     p->opacity)
 DEF_ATTR_SIMPLE(Plane, Color,     Color&, *p->color)
 DEF_ATTR_SIMPLE(Plane, Tone,      Tone&,  *p->tone)
+DEF_ATTR_SIMPLE(Plane, ShaderArr, VALUE, p->shaderArr)
 
 Plane::~Plane()
 {
@@ -311,6 +318,26 @@ void Plane::draw()
 		shader.setTranslation(Vec2i());
 
 		base = &shader;
+	}
+
+	if (p->shaderArr) {
+		long size = rb_array_len(p->shaderArr);
+
+		for (long i = 0; i < size; i++) {
+			VALUE value = rb_ary_entry(p->shaderArr, i);
+
+			if (rb_obj_class(value) != rb_const_get(rb_cObject, rb_intern("Shader")))
+				rb_raise(rb_eTypeError, "Wrong argument type (expected Shader), got %s", rb_obj_classname(value));
+			
+			CustomShader* shader = getPrivateData<CustomShader>(value);
+			CompiledShader* compiled = shader->getShader();
+
+			compiled->bind();
+			compiled->applyViewportProj();
+			shader->applyArgs();
+
+			base = compiled;
+		}
 	}
 
 	glState.blendMode.pushSet(p->blendType);

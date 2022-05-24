@@ -24,12 +24,14 @@
 #include "viewportelement-binding.h"
 #include "binding-util.h"
 #include "binding-types.h"
+#include "shadable-element-binding.h"
 
 DEF_TYPE(Plane);
 
 RB_METHOD(planeInitialize)
 {
 	Plane *p = viewportElementInitialize<Plane>(argc, argv, self);
+	shadableElementInitialize<Plane>(self, p);
 
 	setPrivateData(self, p);
 
@@ -64,6 +66,7 @@ planeBindingInit()
 
 	disposableBindingInit<Plane>     (klass);
 	viewportElementBindingInit<Plane>(klass);
+	shadableElementBindingInit(klass);
 
 	_rb_define_method(klass, "initialize", planeInitialize);
 

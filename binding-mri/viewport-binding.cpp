@@ -61,7 +61,7 @@ RB_METHOD(viewportInitialize)
 		v = new Viewport(x, y, width, height);
 	}
 
-	shadableElementIntialize<Viewport>(self, v);
+	shadableElementInitialize<Viewport>(self, v);
 
 	setPrivateData(self, v);
 
