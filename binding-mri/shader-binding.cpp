@@ -35,10 +35,10 @@ RB_METHOD(shaderInitialize)
 RB_METHOD(shaderCompile)
 {
     VALUE contents;
-    VALUE aryArgs;
+    VALUE aryArgs= 0;
     VALUE vertContents = 0;
 
-    rb_get_args(argc, argv, "oo|o", &contents, &aryArgs, &vertContents RB_ARG_END);
+    rb_get_args(argc, argv, "o|oo", &contents, &aryArgs, &vertContents RB_ARG_END);
 
     VALUE passedArgs[] = {contents, aryArgs, vertContents};
 

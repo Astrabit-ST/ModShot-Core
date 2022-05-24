@@ -7,10 +7,13 @@ DEF_TYPE(CompiledShader);
 RB_METHOD(comiledShaderInitialize)
 {
     const char *contents;
-    VALUE aryArgs;
+    VALUE aryArgs = 0;
     VALUE vertContents = 0;
 
-    rb_get_args(argc, argv, "zo|o", &contents, &aryArgs, &vertContents RB_ARG_END);
+    rb_get_args(argc, argv, "z|oo", &contents, &aryArgs, &vertContents RB_ARG_END);
+
+    if (!aryArgs)
+        aryArgs = rb_ary_new();
 
     CompiledShader *shader;
     if (vertContents)

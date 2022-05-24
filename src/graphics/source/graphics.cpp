@@ -45,21 +45,23 @@
 
 #include <time.h>
 #ifndef _MSC_VER
-#include <sys/time.h>
+// #include <sys/time.h>
 #endif
 #include <errno.h>
 #include <algorithm>
 
-#define DEF_SCREEN_W  (rgssVer == 1 ? 640 : 544)
-#define DEF_SCREEN_H  (rgssVer == 1 ? 480 : 416)
-#define DEF_FRAMERATE (rgssVer == 1 ?  40 :  60)
+#include "rb_shader.h"
+
+#define DEF_SCREEN_W (rgssVer == 1 ? 640 : 544)
+#define DEF_SCREEN_H (rgssVer == 1 ? 480 : 416)
+#define DEF_FRAMERATE (rgssVer == 1 ? 40 : 60)
 
 #if defined _WIN32
-	#define OS_W32
+#define OS_W32
 #elif defined __APPLE__
-	#define OS_OSX
+#define OS_OSX
 #else
-	#define OS_LINUX
+#define OS_LINUX
 #endif
 
 struct PingPong
@@ -69,8 +71,8 @@ struct PingPong
 	int screenW, screenH;
 
 	PingPong(int screenW, int screenH)
-	    : srcInd(0), dstInd(1),
-	      screenW(screenW), screenH(screenH)
+		: srcInd(0), dstInd(1),
+		  screenW(screenW), screenH(screenH)
 	{
 		for (int i = 0; i < 2; ++i)
 		{
@@ -144,7 +146,7 @@ class ScreenScene : public Scene
 {
 public:
 	ScreenScene(int width, int height)
-	    : pp(width, height)
+		: pp(width, height)
 	{
 		updateReso(width, height);
 
@@ -178,16 +180,16 @@ public:
 		}
 	}
 
-	void requestViewportRender(const Vec4 &c, const Vec4 &f, const Vec4 &t)
+	void requestViewportRender(const Vec4 &c, const Vec4 &f, const Vec4 &t, const VALUE &shaderArr)
 	{
 		const IntRect &viewpRect = glState.scissorBox.get();
 		const IntRect &screenRect = geometry.rect;
 
-		const bool toneRGBEffect  = t.xyzNotNull();
+		const bool toneRGBEffect = t.xyzNotNull();
 		const bool toneGrayEffect = t.w != 0;
-		const bool colorEffect    = c.w > 0;
-		const bool flashEffect    = f.w > 0;
-		
+		const bool colorEffect = c.w > 0;
+		const bool flashEffect = f.w > 0;
+
 		if (toneGrayEffect)
 		{
 			pp.swapRender();
@@ -218,6 +220,50 @@ public:
 			glState.blend.pushSet(false);
 			screenQuad.draw();
 			glState.blend.pop();
+		}
+
+		if (shaderArr)
+		{
+			long size = rb_array_len(shaderArr);
+
+			for (long i = 0; i < size; i++)
+			{
+				VALUE value = rb_ary_entry(shaderArr, i);
+
+				if (rb_obj_class(value) != rb_const_get(rb_cObject, rb_intern("Shader")))
+					rb_raise(rb_eTypeError, "Wrong argument type (expected Shader), got %s", rb_obj_classname(value));
+
+				pp.swapRender();
+
+				if (!viewpRect.encloses(screenRect))
+				{
+					/* Scissor test _does_ affect FBO blit operations,
+					 * and since we're inside the draw cycle, it will
+					 * be turned on, so turn it off temporarily */
+					glState.scissorTest.pushSet(false);
+
+					GLMeta::blitBegin(pp.frontBuffer());
+					GLMeta::blitSource(pp.backBuffer());
+					GLMeta::blitRectangle(geometry.rect, Vec2i());
+					GLMeta::blitEnd();
+
+					glState.scissorTest.pop();
+				}
+
+				CustomShader *shader = getPrivateData<CustomShader>(value);
+				CompiledShader *compiled = shader->getShader();
+
+				compiled->bind();
+				shader->applyArgs();
+				compiled->applyViewportProj();
+				compiled->setTexSize(screenRect.size());
+
+				TEX::bind(pp.backBuffer().tex);
+
+				glState.blend.pushSet(false);
+				screenQuad.draw();
+				glState.blend.pop();
+			}
 		}
 
 		if (!toneRGBEffect && !colorEffect && !flashEffect)
@@ -270,7 +316,7 @@ public:
 		{
 			gl.BlendEquation(GL_FUNC_ADD);
 			gl.BlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-			                     GL_ZERO, GL_ONE);
+								 GL_ZERO, GL_ONE);
 		}
 
 		if (colorEffect)
@@ -359,11 +405,11 @@ struct FPSLimiter
 	} adj;
 
 	FPSLimiter(uint16_t desiredFPS)
-	    : lastTickCount(SDL_GetPerformanceCounter()),
-	      tickFreq(SDL_GetPerformanceFrequency()),
-	      tickFreqMS(tickFreq / 1000),
-	      tickFreqNS((double) tickFreq / NS_PER_S),
-	      disabled(false)
+		: lastTickCount(SDL_GetPerformanceCounter()),
+		  tickFreq(SDL_GetPerformanceFrequency()),
+		  tickFreqMS(tickFreq / 1000),
+		  tickFreqNS((double)tickFreq / NS_PER_S),
+		  disabled(false)
 	{
 		setDesiredFPS(desiredFPS);
 
@@ -495,17 +541,17 @@ struct GraphicsPrivate
 	TEX::ID obscuredTex;
 
 	GraphicsPrivate(RGSSThreadData *rtData)
-	    : scRes(DEF_SCREEN_W, DEF_SCREEN_H),
-	      scSize(scRes),
-	      winSize(rtData->config.defScreenW, rtData->config.defScreenH),
-	      screen(scRes.x, scRes.y),
-	      threadData(rtData),
-	      glCtx(SDL_GL_GetCurrentContext()),
-	      frameRate(DEF_FRAMERATE),
-	      frameCount(0),
-	      brightness(255),
-	      fpsLimiter(frameRate),
-	      frozen(false)
+		: scRes(DEF_SCREEN_W, DEF_SCREEN_H),
+		  scSize(scRes),
+		  winSize(rtData->config.defScreenW, rtData->config.defScreenH),
+		  screen(scRes.x, scRes.y),
+		  threadData(rtData),
+		  glCtx(SDL_GL_GetCurrentContext()),
+		  frameRate(DEF_FRAMERATE),
+		  frameCount(0),
+		  brightness(255),
+		  fpsLimiter(frameRate),
+		  frozen(false)
 	{
 		recalculateScreenSize(rtData);
 		updateScreenResoRatio(rtData);
@@ -534,8 +580,8 @@ struct GraphicsPrivate
 	void updateScreenResoRatio(RGSSThreadData *rtData)
 	{
 		Vec2 &ratio = rtData->sizeResoRatio;
-		ratio.x = (float) scRes.x / scSize.x;
-		ratio.y = (float) scRes.y / scSize.y;
+		ratio.x = (float)scRes.x / scSize.x;
+		ratio.y = (float)scRes.y / scSize.y;
 
 		rtData->screenOffset = scOffset;
 	}
@@ -551,8 +597,8 @@ struct GraphicsPrivate
 			return;
 		}
 
-		float resRatio = (float) scRes.x / scRes.y;
-		float winRatio = (float) winSize.x / winSize.y;
+		float resRatio = (float)scRes.x / scRes.y;
+		float winRatio = (float)winSize.x / winSize.y;
 
 		if (resRatio > winRatio)
 			scSize.y = scSize.x / resRatio;
@@ -572,7 +618,7 @@ struct GraphicsPrivate
 			recalculateScreenSize(threadData);
 			updateScreenResoRatio(threadData);
 
-			SDL_Rect screen = { scOffset.x, scOffset.y, scSize.x, scSize.y };
+			SDL_Rect screen = {scOffset.x, scOffset.y, scSize.x, scSize.y};
 			threadData->ethread->notifyGameScreenChange(screen);
 		}
 	}
@@ -615,8 +661,8 @@ struct GraphicsPrivate
 	void metaBlitBufferFlippedScaled()
 	{
 		GLMeta::blitRectangle(IntRect(0, 0, scRes.x, scRes.y),
-		                      IntRect(scOffset.x, scSize.y+scOffset.y, scSize.x, -scSize.y),
-		                      threadData->config.smoothScaling);
+							  IntRect(scOffset.x, scSize.y + scOffset.y, scSize.x, -scSize.y),
+							  threadData->config.smoothScaling);
 	}
 
 	void redrawScreen()
@@ -732,8 +778,8 @@ void Graphics::freeze()
 }
 
 void Graphics::transition(int duration,
-                          const char *filename,
-                          int vague)
+						  const char *filename,
+						  int vague)
 {
 	p->checkSyncLock();
 
@@ -753,7 +799,7 @@ void Graphics::transition(int duration,
 	 * the transition, we can reuse it as the target buffer for
 	 * the final rendered image. */
 	TEXFBO &currentScene = p->screen.getPP().frontBuffer();
-	TEXFBO &transBuffer  = p->screen.getPP().backBuffer();
+	TEXFBO &transBuffer = p->screen.getPP().backBuffer();
 
 	/* If no transition bitmap is provided,
 	 * we can use a simplified shader */
@@ -821,9 +867,10 @@ void Graphics::transition(int duration,
 			simpleShader.setProg(prog);
 		}
 
-		#ifndef OS_LINUX
-			if (p->threadData->exiting) SDL_SetWindowOpacity(p->threadData->window, 1.0f - prog);
-		#endif
+#ifndef OS_LINUX
+		if (p->threadData->exiting)
+			SDL_SetWindowOpacity(p->threadData->window, 1.0f - prog);
+#endif
 
 		/* Draw the composed frame to a buffer first
 		 * (we need this because we're skipping PingPong) */
@@ -892,7 +939,7 @@ void Graphics::fadeout(int duration)
 	float curr = p->brightness;
 	float diff = 255.0f - curr;
 
-	for (int i = duration-1; i > -1; --i)
+	for (int i = duration - 1; i > -1; --i)
 	{
 		setBrightness(diff + (curr / duration) * i);
 
@@ -969,8 +1016,8 @@ int Graphics::height() const
 
 void Graphics::resizeScreen(int width, int height)
 {
-	width = width; //clamp(width, 1, );
-	height = height; //clamp(height, 1, 480);
+	width = width;	 // clamp(width, 1, );
+	height = height; // clamp(height, 1, 480);
 
 	Vec2i size(width, height);
 
@@ -1013,8 +1060,8 @@ void Graphics::reset()
 	IntruListLink<Disposable> *iter;
 
 	for (iter = p->dispList.begin();
-	     iter != p->dispList.end();
-	     iter = iter->next)
+		 iter != p->dispList.end();
+		 iter = iter->next)
 	{
 		iter->data->dispose();
 	}

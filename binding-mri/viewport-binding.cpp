@@ -27,6 +27,8 @@
 #include "binding-util.h"
 #include "binding-types.h"
 
+#include "shadable-element-binding.h"
+
 DEF_TYPE(Viewport);
 
 RB_METHOD(viewportInitialize)
@@ -58,6 +60,8 @@ RB_METHOD(viewportInitialize)
 
 		v = new Viewport(x, y, width, height);
 	}
+
+	shadableElementIntialize<Viewport>(self, v);
 
 	setPrivateData(self, v);
 
@@ -92,6 +96,7 @@ viewportBindingInit()
 	disposableBindingInit  <Viewport>(klass);
 	flashableBindingInit   <Viewport>(klass);
 	sceneElementBindingInit<Viewport>(klass);
+	shadableElementBindingInit(klass);
 
 	_rb_define_method(klass, "initialize", viewportInitialize);
 	
