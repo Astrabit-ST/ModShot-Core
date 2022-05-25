@@ -46,13 +46,13 @@ struct Vec2
 	float getX() const { return x; }
 	float getY() const { return y; }
 
-	void setX(float x) { x = x; }
-	void setY(float y) { y = y; }
+	void setX(float x) { this->x = x; }
+	void setY(float y) { this->y = y; }
 
 	void set(float x, float y)
 	{
-		x = x;
-		y = y;
+		this->x = x;
+		this->y = y;
 	}
 };
 
@@ -83,17 +83,17 @@ struct Vec4
 	float getZ() const { return z; }	
 	float getW() const { return w; }
 
-	void setX(float x) { x = x; }
-	void setY(float y) { y = y; }
-	void setZ(float z) { z = z; }
-	void setW(float w) { w = w; }
+	void setX(float x) { this->x = x; }
+	void setY(float y) { this->y = y; }
+	void setZ(float z) { this->z = z; }
+	void setW(float w) { this->w = w; }
 
 	void set(float x, float y, float z, float w)
 	{
-		x = x;
-		y = y;
-		z = z;
-		w = w;
+		this->x = x;
+		this->y = y;
+		this->z = z;
+		this->w = w;
 	}
 };
 
@@ -189,13 +189,13 @@ struct Vec2i
 	int getX() const { return x; }
 	int getY() const { return y; }
 
-	void setX(int x) { x = x; }
-	void setY(int y) { y = y; }
+	void setX(int x) { this->x = x; }
+	void setY(int y) { this->y = y; }
 
 	void set(int x, int y)
 	{
-		x = x;
-		y = y;
+		this->x = x;
+		this->y = y;
 	}
 };
 

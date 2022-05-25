@@ -6,23 +6,22 @@
 DEF_TYPE(Vec2);
 DEF_TYPE(Vec4);
 
-ATTR_FLOAT_RW(Vec2, X);
-ATTR_FLOAT_RW(Vec2, Y);
+ATTR_DOUBLE_RW(Vec2, X);
+ATTR_DOUBLE_RW(Vec2, Y);
 
-ATTR_FLOAT_RW(Vec4, X);
-ATTR_FLOAT_RW(Vec4, Y);
-ATTR_FLOAT_RW(Vec4, Z);
-ATTR_FLOAT_RW(Vec4, W);
+ATTR_DOUBLE_RW(Vec4, X);
+ATTR_DOUBLE_RW(Vec4, Y);
+ATTR_DOUBLE_RW(Vec4, Z);
+ATTR_DOUBLE_RW(Vec4, W);
 
 EQUAL_FUN(Vec2);
 EQUAL_FUN(Vec4);
 
-INIT_FUN_2(Vec2, float, "ff", 0);
-INIT_FUN(Vec4, float, "ffff", 0);
-INIT_FUN_2(Vec2i, int, "ii", 0);
+INIT_FUN_2(Vec2, double, "ff", 0);
+INIT_FUN(Vec4, double, "ffff", 0);
 
-SET_FUN_2(Vec2, float, "ff", 0);
-SET_FUN(Vec4, float, "ffff", 0);
+SET_FUN_2(Vec2, double, "ff", 0);
+SET_FUN(Vec4, double, "ffff", 0);
 
 RB_METHOD(Vec2Stringify)
 {
