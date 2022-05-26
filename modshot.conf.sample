@@ -159,3 +159,8 @@
 # this number. Maximum: 64.
 #
 # SE.sourceCount=6
+
+# Toggles on or off Custom Window Frames for ModShot
+# This variable expects path to file with window frames (for example seek assets/ directory in ModShot-Core repository)
+# If this variable is empty, CWF will be turned off and user will see basic Win32/X11 Window Frames
+customWindowFrames=
