@@ -100,6 +100,8 @@ struct Config
 
 	bool winConsole;
 
+	std::string customWindowFrames;
+
 	std::string iconPath;
 
 	struct
