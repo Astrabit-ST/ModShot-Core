@@ -1,9 +1,9 @@
 win = import('windows')
 
 res = files(
-'resource.h',
-'icon.ico',
-'resource.rc'
+    'resource.h',
+    'icon.ico',
+    'manifest.xml'
 )
 
 windows_resources = win.compile_resources('resource.rc', depend_files: res)

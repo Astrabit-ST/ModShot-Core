@@ -15,7 +15,7 @@ function fail() {
 }
 
 function copy_dependencies() {
-    if [[ ${2@L} = /c/windows/system32/* ]]; then
+    if [[ ${2@L} = /c/windows/* ]]; then
         return
     fi
     if [[ -f "$DESTDIR/$1" ]]; then

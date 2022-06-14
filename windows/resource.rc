@@ -1,7 +1,10 @@
-#include <windows.h>
+#include <winuser.h>
+
 #include "resource.h"
 
 IDI_APPICON ICON "icon.ico"
+
+1 RT_MANIFEST "manifest.xml"
 
 IDR_APPVERINFO VERSIONINFO
 FILEVERSION 1, 0, 0, 0

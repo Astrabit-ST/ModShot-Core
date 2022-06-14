@@ -16,7 +16,7 @@
 // OS-Specific code
 #if defined _WIN32
 	#define OS_W32
-	#define WIN32_LEAN_AND_MEAN
+	//#define WIN32_LEAN_AND_MEAN
 	#define SECURITY_WIN32
 	#include <windows.h>
 	#include <mmsystem.h>
@@ -481,83 +481,69 @@ void Oneshot::setAllowExit(bool allowExit)
 
 bool Oneshot::msgbox(int type, const char *body, const char *title)
 {
-	if (!title)
+	if (title && !title[0])
+#ifdef _WIN32
+		title = "\u200b"; // Zero width space instead of filename in messagebox title
+#else
 		title = "";
+#endif
+
 #ifdef OS_LINUX
-	linux_DialogData data = {type, body, title, 0};
+	linux_DialogData data = { type, body, title, 0 };
 	gdk_threads_add_idle(linux_dialog, &data);
 	gtk_main();
 	return data.result;
 #else
+	// Buttons data
+	static const SDL_MessageBoxButtonData buttonOk = { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "OK" };
+	static const SDL_MessageBoxButtonData buttonsOk[] = { buttonOk };
+	SDL_MessageBoxButtonData buttonYes = { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, p->txtYes.c_str() };
+	SDL_MessageBoxButtonData buttonNo = { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, p->txtNo.c_str() };
+	SDL_MessageBoxButtonData buttonsYesNo[] = { buttonNo, buttonYes };
 
-	// SDL message box
-	// Button data
-	static const SDL_MessageBoxButtonData buttonOk = {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "OK"};
-	static const SDL_MessageBoxButtonData buttonsOk[] = {buttonOk};
-	SDL_MessageBoxButtonData buttonYes = {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, p->txtYes.c_str()};
-	SDL_MessageBoxButtonData buttonNo = {SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, p->txtNo.c_str()};
-	SDL_MessageBoxButtonData buttonsYesNo[] = {buttonNo, buttonYes};
-
-	// Messagebox data
+	// Message box data
 	SDL_MessageBoxData data;
 	data.window = NULL; //p->window;
 	data.colorScheme = 0;
 	data.title = title;
 	data.message = body;
-#ifdef OS_W32
-	LPCTSTR sound;
-#endif
 
-	//Set type
+	// Set message box type
 	switch (type)
 	{
-	case MSG_INFO:
-	case MSG_YESNO:
-	default:
-		data.flags = SDL_MESSAGEBOX_INFORMATION;
-#ifdef OS_W32
-		sound = (LPCTSTR)SND_ALIAS_SYSTEMQUESTION;
-#endif
-		break;
-	case MSG_WARN:
-		data.flags = SDL_MESSAGEBOX_WARNING;
-#ifdef OS_W32
-		sound = (LPCTSTR)SND_ALIAS_SYSTEMEXCLAMATION;
-#endif
-		break;
-	case MSG_ERR:
-		data.flags = SDL_MESSAGEBOX_WARNING;
-#ifdef OS_W32
-		sound = (LPCTSTR)SND_ALIAS_SYSTEMASTERISK;
-#endif
-		break;
+		case MSG_INFO:
+		case MSG_YESNO:
+		default:
+			data.flags = SDL_MESSAGEBOX_INFORMATION;
+			break;
+		case MSG_WARN:
+			data.flags = SDL_MESSAGEBOX_WARNING;
+			break;
+		case MSG_ERR:
+			data.flags = SDL_MESSAGEBOX_WARNING;
+			break;
 	}
 
-	// Set buttons
+	// Set message box buttons
 	switch (type)
 	{
-	case MSG_INFO:
-	case MSG_WARN:
-	case MSG_ERR:
-	default:
-		data.numbuttons = 1;
-		data.buttons = buttonsOk;
-		break;
-	case MSG_YESNO:
-		data.numbuttons = 2;
-		data.buttons = buttonsYesNo;
-		break;
+		case MSG_INFO:
+		case MSG_WARN:
+		case MSG_ERR:
+		default:
+			data.numbuttons = 1;
+			data.buttons = buttonsOk;
+			break;
+		case MSG_YESNO:
+			data.numbuttons = 2;
+			data.buttons = buttonsYesNo;
+			break;
 	}
 
-	// Show messagebox
-#ifdef OS_W32
-	PlaySound(sound, NULL, SND_ALIAS_ID | SND_ASYNC);
-#endif
+	// Show message box
 	int button;
-
 	#ifdef OS_OSX
 		int *btn = &button;
-
 		// Message boxes and UI changes must be performed from the main thread on macOS Mojave and above.
 		// This block ensures the message box will show from the main thread.
 		dispatch_sync(dispatch_get_main_queue(),
@@ -568,7 +554,7 @@ bool Oneshot::msgbox(int type, const char *body, const char *title)
 	#endif
 
 	return button ? true : false;
-#endif // #ifdef OS_LINUX
+#endif
 }
 
 std::string Oneshot::textinput(const char* prompt, int char_limit, const char* fontName) {
