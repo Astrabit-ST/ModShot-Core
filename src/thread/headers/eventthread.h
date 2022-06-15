@@ -262,6 +262,7 @@ struct RGSSThreadData
 	SyncPoint syncPoint;
 
 	SDL_Window *window;
+	SDL_Renderer *renderer;
 	ALCdevice *alcDev;
 
 	Vec2 sizeResoRatio;
@@ -276,12 +277,14 @@ struct RGSSThreadData
 
 	RGSSThreadData(EventThread *ethread,
 	               SDL_Window *window,
+				   SDL_Renderer *renderer,
 	               ALCdevice *alcDev,
 	               int refreshRate,
 	               const Config& newconf)
 	    : allowExit(true),
 	      ethread(ethread),
 	      window(window),
+		  renderer(renderer),
 	      alcDev(alcDev),
 	      sizeResoRatio(1, 1),
 	      refreshRate(refreshRate),

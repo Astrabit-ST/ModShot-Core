@@ -23,6 +23,7 @@
 #define SHAREDSTATE_H
 
 #include <sigc++/signal.h>
+#include <SDL2/SDL.h>
 
 #define shState SharedState::instance
 #define glState shState->_glState()
@@ -61,6 +62,7 @@ struct SharedState
 	void setBindingData(void *data);
 
 	SDL_Window *sdlWindow() const;
+	SDL_Renderer *sdlRenderer() const;
 
 	Scene *screen() const;
 	void setScreen(Scene &screen);

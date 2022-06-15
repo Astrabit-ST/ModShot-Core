@@ -365,6 +365,7 @@ int main(int argc, char *argv[]) {
 	win = SDL_CreateWindow(conf.windowTitle.c_str(),
 	                       SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 	                       conf.defScreenW, conf.defScreenH, winFlags);
+	SDL_Renderer *ren = SDL_CreateRenderer(win, -1, 0);
 
 	if (!win)
 	{
@@ -405,7 +406,7 @@ int main(int argc, char *argv[]) {
 		conf.syncToRefreshrate = false;
 
 	EventThread eventThread;
-	RGSSThreadData rtData(&eventThread, win,
+	RGSSThreadData rtData(&eventThread, win, ren,
 	                      alcDev, mode.refresh_rate, conf);
 
 #ifndef STEAM
