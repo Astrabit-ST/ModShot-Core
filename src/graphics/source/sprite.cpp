@@ -46,9 +46,10 @@
 
 #include "rb_shader.h"
 #include "binding-types.h"
+#include "texpool.h"
 
 #ifndef M_PI
-	#define M_PI 3.14159265358979323846
+#define M_PI 3.14159265358979323846
 #endif
 
 struct SpritePrivate
@@ -102,19 +103,19 @@ struct SpritePrivate
 	sigc::connection prepareCon;
 
 	SpritePrivate()
-	    : bitmap(0),
-	      srcRect(&tmp.rect),
-	      vmirrored(false),
+		: bitmap(0),
+		  srcRect(&tmp.rect),
+		  vmirrored(false),
 		  mirrored(false),
-	      bushDepth(0),
-	      efBushDepth(0),
-	      bushOpacity(128),
-	      opacity(255),
-	      blendType(BlendNormal),
-	      isVisible(false),
-	      obscured(false),
-	      color(&tmp.color),
-	      tone(&tmp.tone),
+		  bushDepth(0),
+		  efBushDepth(0),
+		  bushOpacity(128),
+		  opacity(255),
+		  blendType(BlendNormal),
+		  isVisible(false),
+		  obscured(false),
+		  color(&tmp.color),
+		  tone(&tmp.tone),
 		  shaderArr(0)
 
 	{
@@ -122,8 +123,7 @@ struct SpritePrivate
 
 		updateSrcRectCon();
 
-		prepareCon = shState->prepareDraw.connect
-		        (sigc::mem_fun(this, &SpritePrivate::prepare));
+		prepareCon = shState->prepareDraw.connect(sigc::mem_fun(this, &SpritePrivate::prepare));
 
 		wave.amp = 0;
 		wave.length = 180;
@@ -145,18 +145,20 @@ struct SpritePrivate
 
 		/* Calculate effective (normalized) bush depth */
 		float texBushDepth = (bushDepth / trans.getScale().y) -
-		                     (srcRect->y + srcRect->height) +
-		                     bitmap->height();
+							 (srcRect->y + srcRect->height) +
+							 bitmap->height();
 
 		efBushDepth = 1.0f - texBushDepth / bitmap->height();
 	}
 
 	FloatRect getMirroredTexRect(FloatRect texrect)
 	{
-		if (mirrored) {
+		if (mirrored)
+		{
 			texrect = texrect.hFlipped();
 		}
-		if (vmirrored) {
+		if (vmirrored)
+		{
 			texrect = texrect.vFlipped();
 		}
 		return texrect;
@@ -172,8 +174,8 @@ struct SpritePrivate
 
 		/* Clamp the rectangle so it doesn't reach outside
 		 * the bitmap bounds */
-		rect.w = clamp<int>(rect.w, 0, bmSize.x-rect.x);
-		rect.h = clamp<int>(rect.h, 0, bmSize.y-rect.y);
+		rect.w = clamp<int>(rect.w, 0, bmSize.x - rect.x);
+		rect.h = clamp<int>(rect.h, 0, bmSize.y - rect.y);
 
 		quad.setTexRect(getMirroredTexRect(rect));
 
@@ -188,8 +190,7 @@ struct SpritePrivate
 		/* Cut old connection */
 		srcRectCon.disconnect();
 		/* Create new one */
-		srcRectCon = srcRect->valueChanged.connect
-				(sigc::mem_fun(this, &SpritePrivate::onSrcRectChange));
+		srcRectCon = srcRect->valueChanged.connect(sigc::mem_fun(this, &SpritePrivate::onSrcRectChange));
 	}
 
 	void updateVisibility()
@@ -230,17 +231,20 @@ struct SpritePrivate
 	}
 
 	void emitWaveChunk(SVertex *&vert, float phase, int width,
-	                   float zoomY, int chunkY, int chunkLength)
+					   float zoomY, int chunkY, int chunkLength)
 	{
-		float wavePos = phase + (chunkY / (float) wave.length) * (float) (M_PI * 2);
+		float wavePos = phase + (chunkY / (float)wave.length) * (float)(M_PI * 2);
 		float chunkX = sin(wavePos) * wave.amp;
 
 		FloatRect tex = getMirroredTexRect(srcRect->toFloatRect());
 		// note: width is ignored, we're using the mirrored srcRect (the original width is from srcRect anyway)
-		if (tex.h < 0) { // texture itself is vflipped
+		if (tex.h < 0)
+		{ // texture itself is vflipped
 			tex.y -= chunkY / zoomY;
 			tex.h = -chunkLength / zoomY;
-		} else {
+		}
+		else
+		{
 			tex.y += chunkY / zoomY;
 			tex.h = chunkLength / zoomY;
 		}
@@ -295,7 +299,7 @@ struct SpritePrivate
 		int visibleLength = height * zoomY;
 
 		/* First chunk length (aligned to 8 pixel boundary */
-		int firstLength = ((int) trans.getPosition().y) % 8;
+		int firstLength = ((int)trans.getPosition().y) % 8;
 
 		/* Amount of full 8 pixel chunks in the middle */
 		int chunks = (visibleLength - firstLength) / 8;
@@ -306,7 +310,7 @@ struct SpritePrivate
 		wave.qArray.resize(!!firstLength + chunks + !!lastLength);
 		SVertex *vert = &wave.qArray.vertices[0];
 
-		float phase = (wave.phase * (float) M_PI) / 180.0f;
+		float phase = (wave.phase * (float)M_PI) / 180.0f;
 
 		if (firstLength > 0)
 			emitWaveChunk(vert, phase, width, zoomY, 0, firstLength);
@@ -333,7 +337,7 @@ struct SpritePrivate
 };
 
 Sprite::Sprite(Viewport *viewport)
-    : ViewportElement(viewport)
+	: ViewportElement(viewport)
 {
 	p = new SpritePrivate;
 	onGeometryChange(scene->getGeometry());
@@ -344,32 +348,32 @@ Sprite::~Sprite()
 	dispose();
 }
 
-DEF_ATTR_RD_SIMPLE(Sprite, Bitmap,     Bitmap*, p->bitmap)
-DEF_ATTR_RD_SIMPLE(Sprite, X,          int,     p->trans.getPosition().x)
-DEF_ATTR_RD_SIMPLE(Sprite, Y,          int,     p->trans.getPosition().y)
-DEF_ATTR_RD_SIMPLE(Sprite, OX,         int,     p->trans.getOrigin().x)
-DEF_ATTR_RD_SIMPLE(Sprite, OY,         int,     p->trans.getOrigin().y)
-DEF_ATTR_RD_SIMPLE(Sprite, ZoomX,      float,   p->trans.getScale().x)
-DEF_ATTR_RD_SIMPLE(Sprite, ZoomY,      float,   p->trans.getScale().y)
-DEF_ATTR_RD_SIMPLE(Sprite, Angle,      float,   p->trans.getRotation())
-DEF_ATTR_RD_SIMPLE(Sprite, Mirror,     bool,    p->mirrored)
-DEF_ATTR_RD_SIMPLE(Sprite, VMirror,     bool,    p->vmirrored)
-DEF_ATTR_RD_SIMPLE(Sprite, BushDepth,  int,     p->bushDepth)
-DEF_ATTR_RD_SIMPLE(Sprite, BlendType,  int,     p->blendType)
-DEF_ATTR_RD_SIMPLE(Sprite, Width,      int,     p->srcRect->width)
-DEF_ATTR_RD_SIMPLE(Sprite, Height,     int,     p->srcRect->height)
-DEF_ATTR_RD_SIMPLE(Sprite, WaveAmp,    int,     p->wave.amp)
-DEF_ATTR_RD_SIMPLE(Sprite, WaveLength, int,     p->wave.length)
-DEF_ATTR_RD_SIMPLE(Sprite, WaveSpeed,  int,     p->wave.speed)
-DEF_ATTR_RD_SIMPLE(Sprite, WavePhase,  float,   p->wave.phase)
+DEF_ATTR_RD_SIMPLE(Sprite, Bitmap, Bitmap *, p->bitmap)
+DEF_ATTR_RD_SIMPLE(Sprite, X, int, p->trans.getPosition().x)
+DEF_ATTR_RD_SIMPLE(Sprite, Y, int, p->trans.getPosition().y)
+DEF_ATTR_RD_SIMPLE(Sprite, OX, int, p->trans.getOrigin().x)
+DEF_ATTR_RD_SIMPLE(Sprite, OY, int, p->trans.getOrigin().y)
+DEF_ATTR_RD_SIMPLE(Sprite, ZoomX, float, p->trans.getScale().x)
+DEF_ATTR_RD_SIMPLE(Sprite, ZoomY, float, p->trans.getScale().y)
+DEF_ATTR_RD_SIMPLE(Sprite, Angle, float, p->trans.getRotation())
+DEF_ATTR_RD_SIMPLE(Sprite, Mirror, bool, p->mirrored)
+DEF_ATTR_RD_SIMPLE(Sprite, VMirror, bool, p->vmirrored)
+DEF_ATTR_RD_SIMPLE(Sprite, BushDepth, int, p->bushDepth)
+DEF_ATTR_RD_SIMPLE(Sprite, BlendType, int, p->blendType)
+DEF_ATTR_RD_SIMPLE(Sprite, Width, int, p->srcRect->width)
+DEF_ATTR_RD_SIMPLE(Sprite, Height, int, p->srcRect->height)
+DEF_ATTR_RD_SIMPLE(Sprite, WaveAmp, int, p->wave.amp)
+DEF_ATTR_RD_SIMPLE(Sprite, WaveLength, int, p->wave.length)
+DEF_ATTR_RD_SIMPLE(Sprite, WaveSpeed, int, p->wave.speed)
+DEF_ATTR_RD_SIMPLE(Sprite, WavePhase, float, p->wave.phase)
 
-DEF_ATTR_SIMPLE(Sprite, BushOpacity, int,     p->bushOpacity)
-DEF_ATTR_SIMPLE(Sprite, Opacity,     int,     p->opacity)
-DEF_ATTR_SIMPLE(Sprite, SrcRect,     Rect&,  *p->srcRect)
-DEF_ATTR_SIMPLE(Sprite, Color,       Color&, *p->color)
-DEF_ATTR_SIMPLE(Sprite, Tone,        Tone&,  *p->tone)
-DEF_ATTR_SIMPLE(Sprite, Obscured,    bool,    p->obscured)
-DEF_ATTR_SIMPLE(Sprite, ShaderArr,  VALUE, p->shaderArr)
+DEF_ATTR_SIMPLE(Sprite, BushOpacity, int, p->bushOpacity)
+DEF_ATTR_SIMPLE(Sprite, Opacity, int, p->opacity)
+DEF_ATTR_SIMPLE(Sprite, SrcRect, Rect &, *p->srcRect)
+DEF_ATTR_SIMPLE(Sprite, Color, Color &, *p->color)
+DEF_ATTR_SIMPLE(Sprite, Tone, Tone &, *p->tone)
+DEF_ATTR_SIMPLE(Sprite, Obscured, bool, p->obscured)
+DEF_ATTR_SIMPLE(Sprite, ShaderArr, VALUE, p->shaderArr)
 
 void Sprite::setBitmap(Bitmap *bitmap)
 {
@@ -475,7 +479,7 @@ void Sprite::setVMirror(bool vmirrored)
 		return;
 
 	p->vmirrored = vmirrored;
-	p->onSrcRectChange();	
+	p->onSrcRectChange();
 }
 void Sprite::setMirror(bool mirrored)
 {
@@ -505,33 +509,33 @@ void Sprite::setBlendType(int type)
 
 	switch (type)
 	{
-	default :
-	case BlendNormal :
+	default:
+	case BlendNormal:
 		p->blendType = BlendNormal;
 		return;
-	case BlendAddition :
+	case BlendAddition:
 		p->blendType = BlendAddition;
 		return;
-	case BlendSubstraction :
+	case BlendSubstraction:
 		p->blendType = BlendSubstraction;
 		return;
 	}
 }
 
-#define DEF_WAVE_SETTER(Name, name, type) \
+#define DEF_WAVE_SETTER(Name, name, type)  \
 	void Sprite::setWave##Name(type value) \
-	{ \
-		guardDisposed(); \
-		if (p->wave.name == value) \
-			return; \
-		p->wave.name = value; \
-		p->wave.dirty = true; \
+	{                                      \
+		guardDisposed();                   \
+		if (p->wave.name == value)         \
+			return;                        \
+		p->wave.name = value;              \
+		p->wave.dirty = true;              \
 	}
 
-DEF_WAVE_SETTER(Amp,    amp,    int)
+DEF_WAVE_SETTER(Amp, amp, int)
 DEF_WAVE_SETTER(Length, length, int)
-DEF_WAVE_SETTER(Speed,  speed,  int)
-DEF_WAVE_SETTER(Phase,  phase,  float)
+DEF_WAVE_SETTER(Speed, speed, int)
+DEF_WAVE_SETTER(Phase, phase, float)
 
 #undef DEF_WAVE_SETTER
 
@@ -555,6 +559,23 @@ void Sprite::update()
 	p->wave.dirty = true;
 }
 
+void Sprite::drawCustomShader(long i)
+{
+	VALUE value = rb_ary_entry(p->shaderArr, i);
+
+	CustomShader *shader = getPrivateDataCheck<CustomShader>(value, CustomShaderType);
+	CompiledShader *compiled = shader->getShader();
+
+	compiled->bind();
+	compiled->applyViewportProj();
+	shader->applyArgs();
+
+	compiled->setTexSize(Vec2i(
+		p->bitmap->width(), p->bitmap->height()));
+
+	p->quad.draw();
+}
+
 /* SceneElement */
 void Sprite::draw()
 {
@@ -567,9 +588,44 @@ void Sprite::draw()
 	ShaderBase *base;
 
 	bool renderEffect = p->color->hasEffect() ||
-	                    p->tone->hasEffect()  ||
-	                    flashing              ||
-	                    p->bushDepth != 0;
+						p->tone->hasEffect() ||
+						flashing ||
+						p->bushDepth != 0;
+
+	TEX::bind(
+		p->bitmap->getGLTypes().tex);
+
+	TEXFBO auxTex;
+	bool destroyAuxTex = false;
+	if (p->shaderArr)
+	{
+		long size = rb_array_len(p->shaderArr);
+
+		if (size > 0)
+		{
+			auxTex = shState->texPool().request(
+				p->bitmap->width(), p->bitmap->height());
+			destroyAuxTex = true;
+
+			glState.blend.pushSet(false);
+			glState.viewport.pushSet(IntRect(0, 0, p->bitmap->width(), p->bitmap->height()));
+
+			FBO::bind(auxTex.fbo);
+			// FBO::setTarget(auxTex.tex);
+
+			drawCustomShader(0);
+
+			TEX::bind(auxTex.tex);
+
+			for (long i = 1; i < size; i++)
+			{
+				drawCustomShader(i);
+			}
+
+			glState.viewport.pop();
+			glState.blend.pop();
+		}
+	}
 
 	if (p->obscured)
 	{
@@ -594,8 +650,7 @@ void Sprite::draw()
 
 		/* When both flashing and effective color are set,
 		 * the one with higher alpha will be blended */
-		const Vec4 *blend = (flashing && flashColor.w > p->color->norm.w) ?
-			                 &flashColor : &p->color->norm;
+		const Vec4 *blend = (flashing && flashColor.w > p->color->norm.w) ? &flashColor : &p->color->norm;
 
 		shader.setColor(*blend);
 
@@ -620,30 +675,11 @@ void Sprite::draw()
 		shader.applyViewportProj();
 		base = &shader;
 	}
-	
-	if (p->shaderArr) {
-		long size = rb_array_len(p->shaderArr);
 
-		for (long i = 0; i < size; i++) {
-			VALUE value = rb_ary_entry(p->shaderArr, i);
-			
-			CustomShader* shader = getPrivateDataCheck<CustomShader>(value, CustomShaderType);
-			CompiledShader* compiled = shader->getShader();
-
-			compiled->bind();
-			compiled->applyViewportProj();
-			shader->applyArgs();
-
-			if (shader->supportsSpriteMat()) 
-				shader->setSpriteMat(p->trans.getMatrix());
-
-			base = compiled;
-		}
-	}
+	base->setTexSize(Vec2i(
+		p->bitmap->width(), p->bitmap->height()));
 
 	glState.blendMode.pushSet(p->blendType);
-
-	p->bitmap->bindTex(*base);
 
 	if (p->wave.active)
 		p->wave.qArray.draw();
@@ -651,6 +687,9 @@ void Sprite::draw()
 		p->quad.draw();
 
 	glState.blendMode.pop();
+
+	if (destroyAuxTex)
+		shState->texPool().release(auxTex);
 }
 
 void Sprite::onGeometryChange(const Scene::Geometry &geo)

@@ -46,6 +46,7 @@ public:
 	int getHeight() const;
 
 	void update();
+	void drawCustomShader(long i);
 
 	DECL_ATTR( Bitmap,      Bitmap* )
 	DECL_ATTR( SrcRect,     Rect&   )

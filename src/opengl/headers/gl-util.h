@@ -125,6 +125,7 @@ namespace FBO
 	static inline void bind(ID id)
 	{
 		gl.BindFramebuffer(GL_FRAMEBUFFER, id.gl);
+		// std::cout << "FBO bound: " << id.gl << std::endl;
 	}
 
 	static inline void unbind()
