@@ -31,6 +31,8 @@
 
 #include "exception.h"
 
+#undef NDEBUG
+
 #ifdef RUBY_API_VERSION_MAJOR
 #define RAPI_MAJOR RUBY_API_VERSION_MAJOR
 #define RAPI_MINOR RUBY_API_VERSION_MINOR

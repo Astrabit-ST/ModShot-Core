@@ -287,33 +287,36 @@ RB_METHOD(eventInstanceGetParameterByName)
     RETURN_PARAMETER;
 }
 
-RB_METHOD(eventInstanceSetParameterByName) {
-    char* name;
+RB_METHOD(eventInstanceSetParameterByName)
+{
+    char *name;
     float value;
     bool ignoreseekspeed;
     rb_get_args(argc, argv, "zfb", &name, &value, &ignoreseekspeed RB_ARG_END);
 
     EventInstance *b = getPrivateData<EventInstance>(self);
     FMOD_RESULT result = FMOD_Studio_EventInstance_SetParameterByName(
-        b->p, name, value, (FMOD_BOOL) ignoreseekspeed);
+        b->p, name, value, (FMOD_BOOL)ignoreseekspeed);
 
     FMOD_RESULT_SIMPLE;
 }
 
-RB_METHOD(eventInstanceSetParameterByNameLabel) {
-    char* name;
-    char* label;
+RB_METHOD(eventInstanceSetParameterByNameLabel)
+{
+    char *name;
+    char *label;
     bool ignoreseekspeed;
     rb_get_args(argc, argv, "zfb", &name, &label, &ignoreseekspeed RB_ARG_END);
 
     EventInstance *b = getPrivateData<EventInstance>(self);
     FMOD_RESULT result = FMOD_Studio_EventInstance_SetParameterByNameWithLabel(
-        b->p, name, label, (FMOD_BOOL) ignoreseekspeed);
+        b->p, name, label, (FMOD_BOOL)ignoreseekspeed);
 
     FMOD_RESULT_SIMPLE;
 }
 
-RB_METHOD(eventInstanceGetParameterByID) {
+RB_METHOD(eventInstanceGetParameterByID)
+{
     VALUE rb_id;
     rb_get_args(argc, argv, "o", &rb_id RB_ARG_END);
 
@@ -327,7 +330,8 @@ RB_METHOD(eventInstanceGetParameterByID) {
     RETURN_PARAMETER;
 }
 
-RB_METHOD(eventInstanceSetParameterByID) {
+RB_METHOD(eventInstanceSetParameterByID)
+{
     VALUE rb_id;
     float value;
     bool ignoreseekspeed;
@@ -336,27 +340,29 @@ RB_METHOD(eventInstanceSetParameterByID) {
     FMOD_STUDIO_PARAMETER_ID id = rb2FMOD_STUDIO_PARAMETER_ID(rb_id);
     EventInstance *b = getPrivateData<EventInstance>(self);
     FMOD_RESULT result = FMOD_Studio_EventInstance_SetParameterByID(
-        b->p, id, value, (FMOD_BOOL) ignoreseekspeed);
+        b->p, id, value, (FMOD_BOOL)ignoreseekspeed);
 
     FMOD_RESULT_SIMPLE;
 }
 
-RB_METHOD(eventInstanceSetParameterByIDLabel) {
+RB_METHOD(eventInstanceSetParameterByIDLabel)
+{
     VALUE rb_id;
-    char* label;
+    char *label;
     bool ignoreseekspeed;
     rb_get_args(argc, argv, "ozfb", &rb_id, &label, &ignoreseekspeed RB_ARG_END);
 
     FMOD_STUDIO_PARAMETER_ID id = rb2FMOD_STUDIO_PARAMETER_ID(rb_id);
     EventInstance *b = getPrivateData<EventInstance>(self);
     FMOD_RESULT result = FMOD_Studio_EventInstance_SetParameterByIDWithLabel(
-        b->p, id, label, (FMOD_BOOL) ignoreseekspeed);
+        b->p, id, label, (FMOD_BOOL)ignoreseekspeed);
 
     FMOD_RESULT_SIMPLE;
 }
 
 //! Here be dragons
-RB_METHOD(eventInstanceSetParametersByIDs) {
+RB_METHOD(eventInstanceSetParametersByIDs)
+{
     //! Get ruby arrays
     VALUE rb_ids;
     VALUE rb_values;
@@ -372,8 +378,8 @@ RB_METHOD(eventInstanceSetParametersByIDs) {
     int count = rb_array_len(rb_values);
 
     //! Create C side arrays
-    float* values = new float[count];
-    FMOD_STUDIO_PARAMETER_ID* ids = new FMOD_STUDIO_PARAMETER_ID[count];
+    float *values = new float[count];
+    FMOD_STUDIO_PARAMETER_ID *ids = new FMOD_STUDIO_PARAMETER_ID[count];
     //! Convert ruby arrays to C side arrays
     for (int i = 0; i < count; i++)
     {
@@ -384,7 +390,7 @@ RB_METHOD(eventInstanceSetParametersByIDs) {
     //! Call the function
     EventInstance *b = getPrivateData<EventInstance>(self);
     FMOD_RESULT result = FMOD_Studio_EventInstance_SetParametersByIDs(
-        b->p, ids, values, count, (FMOD_BOOL) ignoreseekspeed);
+        b->p, ids, values, count, (FMOD_BOOL)ignoreseekspeed);
 
     //! Clean up
     delete[] ids;
@@ -392,7 +398,8 @@ RB_METHOD(eventInstanceSetParametersByIDs) {
     FMOD_RESULT_SIMPLE;
 }
 
-RB_METHOD(eventInstanceKeyOff) {
+RB_METHOD(eventInstanceKeyOff)
+{
     RB_UNUSED_PARAM;
 
     EventInstance *b = getPrivateData<EventInstance>(self);
@@ -402,7 +409,8 @@ RB_METHOD(eventInstanceKeyOff) {
     FMOD_RESULT_SIMPLE;
 }
 
-RB_METHOD(eventInstanceSetCallback) {
+RB_METHOD(eventInstanceSetCallback)
+{
     // TODO
 }
 
