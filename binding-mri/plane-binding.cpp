@@ -24,12 +24,14 @@
 #include "viewportelement-binding.h"
 #include "binding-util.h"
 #include "binding-types.h"
+#include "shadable-element-binding.h"
 
 DEF_TYPE(Plane);
 
 RB_METHOD(planeInitialize)
 {
 	Plane *p = viewportElementInitialize<Plane>(argc, argv, self);
+	shadableElementInitialize<Plane>(self, p);
 
 	setPrivateData(self, p);
 
@@ -54,7 +56,6 @@ DEF_PROP_I(Plane, BlendType)
 
 DEF_PROP_F(Plane, ZoomX)
 DEF_PROP_F(Plane, ZoomY)
-DEF_PROP_F(Plane, WaterTime)
 
 
 void
@@ -65,6 +66,7 @@ planeBindingInit()
 
 	disposableBindingInit<Plane>     (klass);
 	viewportElementBindingInit<Plane>(klass);
+	shadableElementBindingInit(klass);
 
 	_rb_define_method(klass, "initialize", planeInitialize);
 
@@ -78,5 +80,4 @@ planeBindingInit()
 	INIT_PROP_BIND( Plane, BlendType, "blend_type" );
 	INIT_PROP_BIND( Plane, Color,     "color"      );
 	INIT_PROP_BIND( Plane, Tone,      "tone"       );
-	INIT_PROP_BIND( Plane, WaterTime, "waterTime"  );
 }

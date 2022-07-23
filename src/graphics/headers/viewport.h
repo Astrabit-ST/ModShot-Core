@@ -25,6 +25,7 @@
 #include "scene.h"
 #include "flashable.h"
 #include "disposable.h"
+#include "binding-util.h"
 #include "util.h"
 
 struct ViewportPrivate;
@@ -42,15 +43,9 @@ public:
 	DECL_ATTR( Rect,  Rect&  )
 	DECL_ATTR( OX,    int    )
 	DECL_ATTR( OY,    int    )
-	DECL_ATTR( Scanned, bool )
 	DECL_ATTR( Color, Color& )
 	DECL_ATTR( Tone,  Tone&  )
-	DECL_ATTR( RGBOffsetx, Vec4 )
-	DECL_ATTR( RGBOffsety, Vec4 )
-	DECL_ATTR( CubicTime, float )
-	DECL_ATTR( BinaryStrength, float )
-	DECL_ATTR( WaterTime, float )
-	DECL_ATTR( Zoom, Vec2 )
+	DECL_ATTR( ShaderArr, VALUE )
 
 	void initDynAttribs();
 

@@ -12,10 +12,14 @@ endif
 global_include_dirs += include_directories('.')
 
 binding_source = [files(
+    'aleffect-binding.cpp',
+    'audio-binding.cpp',
+    'compiled-shader-binding.cpp',
     'binding-mri.cpp',
     'binding-util.cpp',
     'bitmap-binding.cpp',
     'etc-binding.cpp',
+    'etc-internal-binding.cpp',
     'filesystem-binding.cpp',
     'font-binding.cpp',
     'graphics-binding.cpp',
@@ -27,6 +31,7 @@ binding_source = [files(
     'modshot-binding.cpp',
     'plane-binding.cpp',
     'screen-binding.cpp',
+    'shader-binding.cpp',
     'sprite-binding.cpp',
     'steam-binding.cpp',
     'table-binding.cpp',

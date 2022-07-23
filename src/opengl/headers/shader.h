@@ -316,94 +316,6 @@ private:
 	GLint u_obscured;
 };
 
-class MaskShader : public ShaderBase
-{
-public:
-	MaskShader();
-
-	void setMask(const TEX::ID value);
-	void setMaskCoords(const Vec2i value);
-	void setMaskTranslation(const Vec2i value);
-
-private:
-	GLint u_maskTex;
-	GLint u_maskTexCoords;
-	GLint u_maskTranslation;
-};
-
-class ScannedShader : public ShaderBase
-{
-public: 
-	ScannedShader();
-};
-
-class ScannedShaderSprite : public ShaderBase
-{
-public: 
-	ScannedShaderSprite();
-
-	void setSpriteMat(const float value[16]);
-
-private:
-	GLint u_spriteMat;
-};
-
-class ChronosShader : public ShaderBase
-{
-public:
-	ChronosShader();
-
-	void setrgbOffset(const Vec4 rx, const Vec4 ry);
-
-private:
-	GLint u_rgbOffsetx;
-	GLint u_rgbOffsety;
-};
-
-class ZoomShader : public ShaderBase
-{
-public:
-	ZoomShader();
-
-	void setZoom(const Vec2 zoom);
-
-private:
-	GLint u_zoom;
-};
-
-class CubicShader : public ShaderBase
-{
-public:
-	CubicShader();
-
-	void setiTime(const float value);
-
-private:
-	GLint u_iTime;
-};
-
-class WaterShader : public ShaderBase
-{
-public:
-	WaterShader();
-
-	void setiTime(const float value);
-	void setOpacity(const float opacity);
-
-private:
-	GLint u_iTime, u_opacity;
-};
-
-class BinaryShader : public ShaderBase
-{
-public:
-	BinaryShader();
-
-	void setStrength(const float value);
-private:
-	GLint u_strength;
-};
-
 
 /* Global object containing all available shaders */
 struct ShaderSet
@@ -426,14 +338,6 @@ struct ShaderSet
 	SimpleMatrixShader simpleMatrix;
 	BlurShader blur;
 	ObscuredShader obscured;
-	MaskShader mask;
-	ScannedShader scanned;
-	ScannedShaderSprite scanned_sprite;
-	ChronosShader chronos;
-	ZoomShader zoom;
-	CubicShader cubic;
-	WaterShader water;
-	BinaryShader binary;
 };
 
 #endif // SHADER_H

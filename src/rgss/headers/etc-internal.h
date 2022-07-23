@@ -42,6 +42,18 @@ struct Vec2
 	{
 		return (x == other.x && y == other.y);
 	}
+	
+	float getX() const { return x; }
+	float getY() const { return y; }
+
+	void setX(float x) { this->x = x; }
+	void setY(float y) { this->y = y; }
+
+	void set(float x, float y)
+	{
+		this->x = x;
+		this->y = y;
+	}
 };
 
 struct Vec4
@@ -64,6 +76,24 @@ struct Vec4
 	bool xyzNotNull() const
 	{
 		return (x != 0.0f || y != 0.0f || z != 0.0f);
+	}
+
+	float getX() const { return x; }
+	float getY() const { return y; }
+	float getZ() const { return z; }	
+	float getW() const { return w; }
+
+	void setX(float x) { this->x = x; }
+	void setY(float y) { this->y = y; }
+	void setZ(float z) { this->z = z; }
+	void setW(float w) { this->w = w; }
+
+	void set(float x, float y, float z, float w)
+	{
+		this->x = x;
+		this->y = y;
+		this->z = z;
+		this->w = w;
 	}
 };
 
@@ -154,6 +184,18 @@ struct Vec2i
 	operator Vec2() const
 	{
 		return Vec2(x, y);
+	}
+
+	int getX() const { return x; }
+	int getY() const { return y; }
+
+	void setX(int x) { this->x = x; }
+	void setY(int y) { this->y = y; }
+
+	void set(int x, int y)
+	{
+		this->x = x;
+		this->y = y;
 	}
 };
 
