@@ -19,12 +19,19 @@
 ** along with mkxp.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef USE_FMOD
 #include <alc.h>
+#endif
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#ifndef USE_FMOD
 #include <SDL2/SDL_sound.h>
+#else
+#include <fmod_studio.h>
+#include <fmod_errors.h>
+#endif
 #include <physfs.h>
 
 #ifdef _MSC_VER
@@ -133,6 +140,7 @@ int rgssThreadFun(void *userdata)
 	GLDebugLogger dLogger;
 #endif
 
+	#ifndef USE_FMOD
 	/* Setup AL context */
 	ALCcontext *alcCtx = alcCreateContext(threadData->alcDev, 0);
 
@@ -145,6 +153,7 @@ int rgssThreadFun(void *userdata)
 	}
 
 	alcMakeContextCurrent(alcCtx);
+	#endif
 
 	try
 	{
@@ -153,7 +162,9 @@ int rgssThreadFun(void *userdata)
 	catch (const Exception &exc)
 	{
 		rgssThreadError(threadData, exc.msg);
+		#ifndef USE_FMOD
 		alcDestroyContext(alcCtx);
+		#endif
 		SDL_GL_DeleteContext(glCtx);
 
 		return 0;
@@ -167,7 +178,9 @@ int rgssThreadFun(void *userdata)
 
 	SharedState::finiInstance();
 
+	#ifndef USE_FMOD
 	alcDestroyContext(alcCtx);
+	#endif
 	SDL_GL_DeleteContext(glCtx);
 
 	return 0;
@@ -301,7 +314,7 @@ int main(int argc, char *argv[]) {
 			showInitError(std::string("Unable to switch into gameFolder ") + conf.gameFolder);
 			return 0;
 		}
-	
+
 #ifdef __WIN32
     // Create a debug console in debug mode
     if (conf.winConsole) {
@@ -342,6 +355,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
+	#ifndef USE_FMOD
 	if (Sound_Init() == 0)
 	{
 		showInitError(std::string("Error initializing SDL_sound: ") + Sound_GetError());
@@ -351,6 +365,7 @@ int main(int argc, char *argv[]) {
 
 		return 0;
 	}
+	#endif
 
 	SDL_Window *win;
 	Uint32 winFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS; //| SDL_WINDOW_ALLOW_HIGHDPI;
@@ -380,6 +395,8 @@ int main(int argc, char *argv[]) {
 	(void) setupWindowIcon;
 #endif
 
+	#ifndef USE_FMOD
+
 	ALCdevice *alcDev = alcOpenDevice(0);
 
 	if (!alcDev)
@@ -396,6 +413,22 @@ int main(int argc, char *argv[]) {
 	if(alcIsExtensionPresent(alcDev, "ALC_EXT_EFX") != ALC_TRUE) {
 		showInitError("OpenAL device does not support Effects extension.");
 	}
+	#else
+	//FMOD_RESULT result;
+	//FMOD_STUDIO_SYSTEM *system = NULL;
+	//
+	//result = FMOD_Studio_System_Create(&system, FMOD_VERSION);
+	//if (result != FMOD_OK) {
+	//	showInitError(std::string("Error creating FMOD system: ") + FMOD_ErrorString(result));
+	//	return 0;
+	//}
+
+	//result = FMOD_Studio_System_Initialize(system, conf.maxFmodChannels, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, 0);
+	//if (result != FMOD_OK) {
+	//	showInitError(std::string("Error initializing FMOD system: ") + FMOD_ErrorString(result));
+	//	return 0;
+	//}
+	#endif
 
 	SDL_DisplayMode mode;
 	SDL_GetDisplayMode(0, 0, &mode);
@@ -406,7 +439,12 @@ int main(int argc, char *argv[]) {
 
 	EventThread eventThread;
 	RGSSThreadData rtData(&eventThread, win,
-	                      alcDev, mode.refresh_rate, conf);
+						  #ifndef USE_FMOD
+	                      alcDev,
+						  #else
+						  // system,
+						  #endif
+						  mode.refresh_rate, conf);
 
 #ifndef STEAM
 	/* Add controller bindings from embedded controller DB */
@@ -476,10 +514,14 @@ int main(int argc, char *argv[]) {
 	unloadLocale();
 	unloadLanguageMetadata();
 
+	#ifndef USE_FMOD
 	alcCloseDevice(alcDev);
+	#endif
 	SDL_DestroyWindow(win);
 
+	#ifndef USE_FMOD
 	Sound_Quit();
+	#endif
 	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();

@@ -60,3 +60,5 @@ assets/icon.ico
 
 .vscode
 out/
+/fmod/
+.gdb_history

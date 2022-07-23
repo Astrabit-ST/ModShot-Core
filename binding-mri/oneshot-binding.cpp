@@ -22,12 +22,10 @@ RB_METHOD(oneshotMsgBox)
 {
 	RB_UNUSED_PARAM;
 	int type;
-	VALUE body;
-	VALUE title = Qnil;
-	rb_get_args(argc, argv, "iS|S", &type, &body, &title RB_ARG_END);
-	std::string bodyStr = std::string(RSTRING_PTR(body), RSTRING_LEN(body));
-	std::string titleStr = (title == Qnil) ? "" : std::string(RSTRING_PTR(title), RSTRING_LEN(title));
-	return rb_bool_new(shState->oneshot().msgbox(type, bodyStr.c_str(), titleStr.c_str()));
+	const char *body;
+	const char *title = "";
+	rb_get_args(argc, argv, "iz|z", &type, &body, &title RB_ARG_END);
+	return rb_bool_new(shState->oneshot().msgbox(type, body, title));
 }
 
 RB_METHOD(oneshotTextInput)

@@ -23,6 +23,9 @@
 #define SHAREDSTATE_H
 
 #include <sigc++/signal.h>
+#ifdef USE_FMOD
+#include <fmod_studio.h>
+#endif
 
 #define shState SharedState::instance
 #define glState shState->_glState()
@@ -73,11 +76,16 @@ struct SharedState
 
 	Graphics &graphics() const;
 	Input &input() const;
+	#ifndef USE_FMOD
 	Audio &audio() const;
+	#else
+	//FMOD_STUDIO_SYSTEM* studio_system() const;
+	//FMOD_SYSTEM* core_system() const;
+	#endif
 
 	Oneshot &oneshot() const;
 
-	
+
 #ifdef STEAM
 	Steam &steam() const;
 #endif

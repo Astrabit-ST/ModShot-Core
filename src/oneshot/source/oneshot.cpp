@@ -16,7 +16,6 @@
 // OS-Specific code
 #if defined _WIN32
 	#define OS_W32
-
 	#ifndef WIN32_LEAN_AND_MEAN
 	#define WIN32_LEAN_AND_MEAN
 	#endif
@@ -66,6 +65,7 @@ struct OneshotPrivate
 	std::string txtYes;
 	std::string txtNo;
 
+	// Booleans
 	bool exiting;
 	bool allowExit;
 
@@ -155,25 +155,25 @@ static std::string w32_fromWide(const WCHAR *ustr)
 	return result;
 }
 /* Convert WCHAR pointer from const char* */
-//static WCHAR *w32_toWide(const char *str)
-//{
-//	if (str)
-//	{
-//		int size = MultiByteToWideChar(CP_UTF8, 0, str, -1, 0, 0);
-//		if (size > 0)
-//		{
-//			WCHAR *ustr = new WCHAR[size];
-//			if (MultiByteToWideChar(CP_UTF8, 0, str, -1, ustr, size) == size)
-//				return ustr;
-//			delete [] ustr;
-//		}
-//	}
+// static WCHAR *w32_toWide(const char *str)
+// {
+// 	if (str)
+// 	{
+// 		int size = MultiByteToWideChar(CP_UTF8, 0, str, -1, 0, 0);
+// 		if (size > 0)
+// 		{
+// 			WCHAR *ustr = new WCHAR[size];
+// 			if (MultiByteToWideChar(CP_UTF8, 0, str, -1, ustr, size) == size)
+// 				return ustr;
+// 			delete [] ustr;
+// 		}
+// 	}
 //
-//	//Return empty string
-//	WCHAR *ustr = new WCHAR[1];
-//	*ustr = 0;
-//	return ustr;
-//}
+// 	//Return empty string
+// 	WCHAR *ustr = new WCHAR[1];
+// 	*ustr = 0;
+// 	return ustr;
+// }
 #endif
 
 Oneshot::Oneshot(RGSSThreadData &threadData) :
@@ -210,25 +210,25 @@ Oneshot::Oneshot(RGSSThreadData &threadData) :
 
 	//Get user's name
 	ULONG size = 0;
-	GetUserNameEx(NameDisplay, 0, &size);
+	GetUserNameExW(NameDisplay, 0, &size);
 	if (GetLastError() == ERROR_MORE_DATA)
 	{
 		//Get their full (display) name
-		char* name = new char[size];
-		GetUserNameEx(NameDisplay, name, &size);
-		p->userName = w32_fromWide((WCHAR*) name);
+		wchar_t* name = new wchar_t[size];
+		GetUserNameExW(NameDisplay, name, &size);
+		p->userName = w32_fromWide(name);
 		delete [] name;
 	}
 	else
 	{
 		//Get their login name
 		DWORD size2 = 0;
-		GetUserName(0, &size2);
+		GetUserNameW(0, &size2);
 		if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
 		{
-			char* name = new char[size2];
-			GetUserName(name, &size2);
-			p->userName = w32_fromWide((WCHAR*) name);
+			wchar_t* name = new wchar_t[size2];
+			GetUserNameW(name, &size2);
+			p->userName = w32_fromWide(name);
 			delete [] name;
 		}
 	}
@@ -483,83 +483,69 @@ void Oneshot::setAllowExit(bool allowExit)
 
 bool Oneshot::msgbox(int type, const char *body, const char *title)
 {
-	if (!title)
+	if (title && !title[0])
+#ifdef _WIN32
+		title = "\u200b"; // Zero width space instead of filename in messagebox title
+#else
 		title = "";
+#endif
+
 #ifdef OS_LINUX
-	linux_DialogData data = {type, body, title, 0};
+	linux_DialogData data = { type, body, title, 0 };
 	gdk_threads_add_idle(linux_dialog, &data);
 	gtk_main();
 	return data.result;
 #else
+	// Buttons data
+	static const SDL_MessageBoxButtonData buttonOk = { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "OK" };
+	static const SDL_MessageBoxButtonData buttonsOk[] = { buttonOk };
+	SDL_MessageBoxButtonData buttonYes = { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, p->txtYes.c_str() };
+	SDL_MessageBoxButtonData buttonNo = { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, p->txtNo.c_str() };
+	SDL_MessageBoxButtonData buttonsYesNo[] = { buttonNo, buttonYes };
 
-	// SDL message box
-	// Button data
-	static const SDL_MessageBoxButtonData buttonOk = {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "OK"};
-	static const SDL_MessageBoxButtonData buttonsOk[] = {buttonOk};
-	SDL_MessageBoxButtonData buttonYes = {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, p->txtYes.c_str()};
-	SDL_MessageBoxButtonData buttonNo = {SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, p->txtNo.c_str()};
-	SDL_MessageBoxButtonData buttonsYesNo[] = {buttonNo, buttonYes};
-
-	// Messagebox data
+	// Message box data
 	SDL_MessageBoxData data;
 	data.window = NULL; //p->window;
 	data.colorScheme = 0;
 	data.title = title;
 	data.message = body;
-#ifdef OS_W32
-	DWORD sound;
-#endif
 
-	//Set type
+	// Set message box type
 	switch (type)
 	{
-	case MSG_INFO:
-	case MSG_YESNO:
-	default:
-		data.flags = SDL_MESSAGEBOX_INFORMATION;
-#ifdef OS_W32
-		sound = SND_ALIAS_SYSTEMQUESTION;
-#endif
-		break;
-	case MSG_WARN:
-		data.flags = SDL_MESSAGEBOX_WARNING;
-#ifdef OS_W32
-		sound = SND_ALIAS_SYSTEMEXCLAMATION;
-#endif
-		break;
-	case MSG_ERR:
-		data.flags = SDL_MESSAGEBOX_WARNING;
-#ifdef OS_W32
-		sound = SND_ALIAS_SYSTEMASTERISK;
-#endif
-		break;
+		case MSG_INFO:
+		case MSG_YESNO:
+		default:
+			data.flags = SDL_MESSAGEBOX_INFORMATION;
+			break;
+		case MSG_WARN:
+			data.flags = SDL_MESSAGEBOX_WARNING;
+			break;
+		case MSG_ERR:
+			data.flags = SDL_MESSAGEBOX_WARNING;
+			break;
 	}
 
-	// Set buttons
+	// Set message box buttons
 	switch (type)
 	{
-	case MSG_INFO:
-	case MSG_WARN:
-	case MSG_ERR:
-	default:
-		data.numbuttons = 1;
-		data.buttons = buttonsOk;
-		break;
-	case MSG_YESNO:
-		data.numbuttons = 2;
-		data.buttons = buttonsYesNo;
-		break;
+		case MSG_INFO:
+		case MSG_WARN:
+		case MSG_ERR:
+		default:
+			data.numbuttons = 1;
+			data.buttons = buttonsOk;
+			break;
+		case MSG_YESNO:
+			data.numbuttons = 2;
+			data.buttons = buttonsYesNo;
+			break;
 	}
 
-	// Show messagebox
-#ifdef OS_W32
-	PlaySoundW((LPCWSTR)sound, NULL, SND_ALIAS_ID | SND_ASYNC);
-#endif
+	// Show message box
 	int button;
-
 	#ifdef OS_OSX
 		int *btn = &button;
-
 		// Message boxes and UI changes must be performed from the main thread on macOS Mojave and above.
 		// This block ensures the message box will show from the main thread.
 		dispatch_sync(dispatch_get_main_queue(),
@@ -570,7 +556,7 @@ bool Oneshot::msgbox(int type, const char *body, const char *title)
 	#endif
 
 	return button ? true : false;
-#endif // #ifdef OS_LINUX
+#endif
 }
 
 std::string Oneshot::textinput(const char* prompt, int char_limit, const char* fontName) {

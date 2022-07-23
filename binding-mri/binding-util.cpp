@@ -99,220 +99,320 @@ raiseDisposedAccess(VALUE self)
 	rb_raise(getRbData()->exc[RGSS], "disposed %s", buf);
 }
 
-int
-rb_get_args(int argc, VALUE *argv, const char *format, ...)
-{
-	char c;
-	VALUE *arg = argv;
-	va_list ap;
-	bool opt = false;
-	int argI = 0;
+int rb_get_args(int argc, VALUE *argv, const char *format, ...) {
+	int arg_count = 0;
+	int opt_count = 0;
+	bool optional = false;
+	char arg;
+	while (true) {
+		arg = format[arg_count + opt_count];
+		if (arg == '|')
+			optional = true;
+		if (arg == '\0')
+			break;
 
+		if (optional)
+			opt_count++;
+		else
+			arg_count++;
+	}
+
+	//! If argc is less than the required arguments or more than the optional arguments + the required arguments, raise an error.
+	if (argc < arg_count || argc > arg_count + opt_count)
+		if (optional)
+			rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected %d..%d)", argc, arg_count, arg_count + opt_count);
+		else
+			rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected %d)", argc, arg_count);
+
+	va_list ap;
 	va_start(ap, format);
 
-	while ((c = *format++))
-	{
-		switch (c)
-		{
-	    case '|' :
-			break;
-	    default:
-		// FIXME print num of needed args vs provided
-			if (argc <= argI && !opt)
-				rb_raise(rb_eArgError, "wrong number of arguments");
+	optional = false;
+	for (int i = 0; i < argc + optional; i++) { //? We add optional so we can skip over the '|'
+		arg = format[i];
 
-			break;
-	    }
+		if (arg == '|') { //? Skip over the '|'
+			optional = true;
+			continue;
+		}
 
-		if (argI >= argc)
-			break;
-
-		switch (c)
-		{
-		case 'o' :
-		{
-			if (argI >= argc)
+		switch (arg) {
+			case 'o': {
+				VALUE *obj = va_arg(ap, VALUE*);
+				(*obj) = *argv;
 				break;
+			}
 
-			VALUE *obj = va_arg(ap, VALUE*);
-
-			*obj = *arg++;
-			++argI;
-
-			break;
-		}
-
-		case 'S' :
-		{
-			if (argI >= argc)
+			case 'S': {
+				VALUE *str = va_arg(ap, VALUE*);
+				(*str) = rb_str_to_str(*argv);
 				break;
+			}
 
-			VALUE *str = va_arg(ap, VALUE*);
-			VALUE tmp = *arg;
+			case 's': {
+				char **str = va_arg(ap, char**);
+				int *len = va_arg(ap, int*);
 
-			tmp = rb_str_to_str(tmp);
-
-			*str = tmp;
-			++argI;
-
-			break;
-		}
-
-		case 's' :
-		{
-			if (argI >= argc)
+				(*str) = StringValuePtr(*argv); //! Does not ensure that the string is null-terminated
+				(*len) = RSTRING_LEN(*argv);
 				break;
+			}
 
-			const char **s = va_arg(ap, const char**);
-			int *len = va_arg(ap, int*);
+			case 'z': {
+				char **str = va_arg(ap, char**);
 
-			VALUE tmp = *arg;
-
-			tmp = rb_str_to_str(tmp);
-
-			*s = RSTRING_PTR(tmp);
-			*len = RSTRING_LEN(tmp);
-			++argI;
-
-			break;
-		}
-
-		case 'z' :
-		{
-			if (argI >= argc)
+				(*str) = StringValueCStr(*argv); //! Ensures that the string is null-terminated
 				break;
+			}
 
-			const char **s = va_arg(ap, const char**);
+			case 'f': {
+				double *vfloat = va_arg(ap, double*);
 
-			VALUE tmp = *arg++;
-
-			tmp = rb_str_to_str(tmp);
-
-			*s = RSTRING_PTR(tmp);
-			++argI;
-
-			break;
-		}
-
-		case 'f' :
-		{
-			if (argI >= argc)
+				rb_float_arg(*argv, vfloat, i - optional);
 				break;
+			}
 
-			double *f = va_arg(ap, double*);
-			VALUE fVal = *arg++;
+			case 'i': {
+				int *vint = va_arg(ap, int*);
 
-			rb_float_arg(fVal, f, argI);
-
-			++argI;
-			break;
-		}
-
-		case 'i' :
-		{
-			if (argI >= argc)
+				rb_int_arg(*argv, vint, i - optional);
 				break;
+			}
 
-			int *i = va_arg(ap, int*);
-			VALUE iVal = *arg++;
+			case 'b': {
+				bool *vbool = va_arg(ap, bool*);
 
-			rb_int_arg(iVal, i, argI);
-
-			++argI;
-			break;
-		}
-
-		case 'b' :
-		{
-			if (argI >= argc)
+				rb_bool_arg(*argv, vbool, i - optional);
 				break;
+			}
+			//! 'n' isn't added since it's not used in the code
 
-			bool *b = va_arg(ap, bool*);
-			VALUE bVal = *arg++;
-
-			rb_bool_arg(bVal, b, argI);
-
-			++argI;
-			break;
+			default: {
+				rb_raise(rb_eFatal, "Invalid argument specifier: %c", arg);
+			}
 		}
-
-		case 'n' :
-		{
-			if (argI >= argc)
-				break;
-
-			ID *sym = va_arg(ap, ID*);
-
-			VALUE symVal = *arg++;
-
-			if (!SYMBOL_P(symVal))
-				rb_raise(rb_eTypeError, "Argument %d: Expected symbol", argI);
-
-			*sym = SYM2ID(symVal);
-			++argI;
-
-			break;
-		}
-
-		case '|' :
-			opt = true;
-			break;
-
-		default:
-			rb_raise(rb_eFatal, "invalid argument specifier %c", c);
-		}
+		argv++; //! Move to the next argument
 	}
-
-#ifndef NDEBUG
-
-	/* Pop remaining arg pointers off
-	 * the stack to check for RB_ARG_END */
-	format--;
-
-	while ((c = *format++))
-	{
-		switch (c)
-		{
-		case 'o' :
-		case 'S' :
-			va_arg(ap, VALUE*);
-			break;
-
-		case 's' :
-			va_arg(ap, const char**);
-			va_arg(ap, int*);
-			break;
-
-		case 'z' :
-			va_arg(ap, const char**);
-			break;
-
-		case 'f' :
-			va_arg(ap, double*);
-			break;
-
-		case 'i' :
-			va_arg(ap, int*);
-			break;
-
-		case 'b' :
-			va_arg(ap, bool*);
-			break;
-		}
-	}
-
-	// FIXME print num of needed args vs provided
-	if (!c && argc > argI)
-		rb_raise(rb_eArgError, "wrong number of arguments");
-
-	/* Verify correct termination */
-	void *argEnd = va_arg(ap, void*);
-	(void) argEnd;
-	assert(argEnd == RB_ARG_END_VAL);
-
-#endif
 
 	va_end(ap);
 
-	return argI;
+	return arg_count;
 }
+
+//int
+//rb_get_args(int argc, VALUE *argv, const char *format, ...)
+//{
+//	char c;
+//	VALUE *arg = argv;
+//	va_list ap;
+//	bool opt = false;
+//	int argI = 0;
+//
+//	va_start(ap, format);
+//
+//	while ((c = *format++))
+//	{
+//		switch (c)
+//		{
+//	    case '|' :
+//			break;
+//	    default:
+//		// FIXME print num of needed args vs provided
+//			if (argc <= argI && !opt)
+//				rb_raise(rb_eArgError, "wrong number of arguments");
+//
+//			break;
+//	    }
+//
+//		if (argI >= argc)
+//			break;
+//
+//		switch (c)
+//		{
+//		case 'o' :
+//		{
+//			if (argI >= argc)
+//				break;
+//
+//			VALUE *obj = va_arg(ap, VALUE*);
+//
+//			*obj = *arg++;
+//			++argI;
+//
+//			break;
+//		}
+//
+//		case 'S' :
+//		{
+//			if (argI >= argc)
+//				break;
+//
+//			VALUE *str = va_arg(ap, VALUE*);
+//			VALUE tmp = *arg;
+//
+//			tmp = rb_str_to_str(tmp);
+//
+//			*str = tmp;
+//			++argI;
+//
+//			break;
+//		}
+//
+//		case 's' :
+//		{
+//			if (argI >= argc)
+//				break;
+//
+//			const char **s = va_arg(ap, const char**);
+//			int *len = va_arg(ap, int*);
+//
+//			VALUE tmp = *arg;
+//
+//			tmp = rb_str_to_str(tmp);
+//
+//			*s = RSTRING_PTR(tmp);
+//			*len = RSTRING_LEN(tmp);
+//			++argI;
+//
+//			break;
+//		}
+//
+//		case 'z' :
+//		{
+//			if (argI >= argc)
+//				break;
+//
+//			const char **s = va_arg(ap, const char**);
+//
+//			VALUE tmp = *arg++;
+//
+//			tmp = rb_str_to_str(tmp);
+//
+//			*s = RSTRING_PTR(tmp);
+//			++argI;
+//
+//			break;
+//		}
+//
+//		case 'f' :
+//		{
+//			if (argI >= argc)
+//				break;
+//
+//			double *f = va_arg(ap, double*);
+//			VALUE fVal = *arg++;
+//
+//			rb_float_arg(fVal, f, argI);
+//
+//			++argI;
+//			break;
+//		}
+//
+//		case 'i' :
+//		{
+//			if (argI >= argc)
+//				break;
+//
+//			int *i = va_arg(ap, int*);
+//			VALUE iVal = *arg++;
+//
+//			rb_int_arg(iVal, i, argI);
+//
+//			++argI;
+//			break;
+//		}
+//
+//		case 'b' :
+//		{
+//			if (argI >= argc)
+//				break;
+//
+//			bool *b = va_arg(ap, bool*);
+//			VALUE bVal = *arg++;
+//
+//			rb_bool_arg(bVal, b, argI);
+//
+//			++argI;
+//			break;
+//		}
+//
+//		case 'n' :
+//		{
+//			if (argI >= argc)
+//				break;
+//
+//			ID *sym = va_arg(ap, ID*);
+//
+//			VALUE symVal = *arg++;
+//
+//			if (!SYMBOL_P(symVal))
+//				rb_raise(rb_eTypeError, "Argument %d: Expected symbol", argI);
+//
+//			*sym = SYM2ID(symVal);
+//			++argI;
+//
+//			break;
+//		}
+//
+//		case '|' :
+//			opt = true;
+//			break;
+//
+//		default:
+//			rb_raise(rb_eFatal, "invalid argument specifier %c", c);
+//		}
+//	}
+//
+//#ifndef NDEBUG
+//
+//	/* Pop remaining arg pointers off
+//	 * the stack to check for RB_ARG_END */
+//	format--;
+//
+//	while ((c = *format++))
+//	{
+//		switch (c)
+//		{
+//		case 'o' :
+//		case 'S' :
+//			va_arg(ap, VALUE*);
+//			break;
+//
+//		case 's' :
+//			va_arg(ap, const char**);
+//			va_arg(ap, int*);
+//			break;
+//
+//		case 'z' :
+//			va_arg(ap, const char**);
+//			break;
+//
+//		case 'f' :
+//			va_arg(ap, double*);
+//			break;
+//
+//		case 'i' :
+//			va_arg(ap, int*);
+//			break;
+//
+//		case 'b' :
+//			va_arg(ap, bool*);
+//			break;
+//		}
+//	}
+//
+//	// FIXME print num of needed args vs provided
+//	if (!c && argc > argI)
+//		rb_raise(rb_eArgError, "wrong number of arguments");
+//
+//	/* Verify correct termination */
+//	void *argEnd = va_arg(ap, void*);
+//	(void) argEnd;
+//	assert(argEnd == RB_ARG_END_VAL);
+//
+//#endif
+//
+//	va_end(ap);
+//
+//	return argI;
+//}

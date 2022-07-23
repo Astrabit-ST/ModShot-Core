@@ -92,13 +92,9 @@ struct Config
 	int yjitMaxVersions;
 	bool yjitGreedyVersioning;
 
-	// This is for older versions of Ruby (3.0.* and below)
-	bool jitEnabled;
-	int jitVerbosity;
-	int jitMaxCache;
-	int jitMinCalls;
-
 	bool winConsole;
+
+	//int maxFmodChannels;
 
 	std::string iconPath;
 

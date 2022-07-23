@@ -522,7 +522,6 @@ RB_METHOD(inputGetAllRepeated)
 RB_METHOD(inputSetAllPressedUnPressed)
 {
 	RB_UNUSED_PARAM;
-	VALUE res = rb_ary_new();
     for (size_t i = 0; i < buttonCodesN; i++) {
 		if (shState->input().isPressed(buttonCodes[i].val)) {
             shState->input().unsetKey(buttonCodes[i].val);
@@ -533,7 +532,6 @@ RB_METHOD(inputSetAllPressedUnPressed)
 RB_METHOD(inputSetAllUnPressed)
 {
 	RB_UNUSED_PARAM;
-	VALUE res = rb_ary_new();
     for (size_t i = 0; i < buttonCodesN; i++) {
         shState->input().unsetKey(buttonCodes[i].val);		
 	}

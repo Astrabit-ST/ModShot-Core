@@ -1,13 +1,8 @@
 boost = dependency('boost', version: '>=1.49', modules: ['program_options'], static: build_static)
 physfs = dependency('physfs', version: '>=2.1', static: build_static)
-openal = dependency('openal')
-vorbisfile = dependency('vorbisfile', static: build_static)
-vorbis = dependency('vorbis', static: build_static)
-ogg = dependency('ogg', static: build_static)
-sdl2 = dependency('SDL2')
+sdl2 = dependency('SDL2', static: build_static)
 freetype = dependency('freetype2', static: build_static)
 harfbuzz = dependency('harfbuzz', static: build_static)
-sdl_sound = dependency('SDL2_sound', static: build_static)
 sdl2_ttf = dependency('SDL2_ttf', static: build_static)
 sdl2_image = dependency('SDL2_image', static: build_static)
 sigcxx = dependency('sigc++-2.0', static: build_static)
@@ -19,19 +14,63 @@ webp = dependency('libwebp', static: build_static)
 zlib = dependency('zlib', static: build_static)
 nsgif = dependency('libnsgif', static: build_static)
 
+fmod_arch_prefix = ''
 if host_system == 'windows'
-    bz2 = dependency('bzip2')
+	fmod_arch_prefix = 'x64'
+else
+	fmod_arch_prefix = 'x86_64'
+endif
+
+if fmod
+	# FUck
+	fmod_lib_path = get_option('fmod_core_lib_dir')
+	if fmod_lib_path == ''
+	  fmod_lib_path = join_paths(
+		meson.global_source_root(), 'fmod/api/core/lib/' + fmod_arch_prefix
+	  )
+	endif
+
+	fsbank_lib_path = get_option('fmod_fsbank_lib_dir')
+	if fsbank_lib_path == ''
+	  fsbank_lib_path = join_paths(
+		meson.global_source_root(), 'fmod/api/fsbank/lib/' + fmod_arch_prefix
+	  )
+	endif
+
+	studio_lib_path = get_option('fmod_studio_lib_dir')
+	if studio_lib_path == ''
+	  studio_lib_path = join_paths(
+		meson.global_source_root(), 'fmod/api/studio/lib/' + fmod_arch_prefix
+	  )
+	endif
+
+	fmod_lib = compilers['cpp'].find_library('fmod', dirs: fmod_lib_path)
+	fsbank = compilers['cpp'].find_library('fsbank', dirs: fsbank_lib_path)
+	studio = compilers['cpp'].find_library('fmodstudio', dirs: studio_lib_path)
+	global_dependencies += [fmod_lib, fsbank, studio]
+else
+	# FMOD does not require these libraries
+	openal = dependency('openal')
+	vorbisfile = dependency('vorbisfile', static: build_static)
+	vorbis = dependency('vorbis', static: build_static)
+	ogg = dependency('ogg', static: build_static)
+	sdl_sound = dependency('SDL2_sound', static: build_static)
+	global_dependencies += [openal, vorbisfile, vorbis, ogg, sdl_sound]
+endif
+
+if host_system == 'windows'
+	bz2 = dependency('bzip2')
 	iconv = compilers['cpp'].find_library('iconv')
 else
-    bz2 = compilers['cpp'].find_library('bz2')
+	bz2 = compilers['cpp'].find_library('bz2')
 	iconv = compilers['cpp'].find_library('iconv')
-    gtk = dependency('gtk+-2.0')
-    xfconf = dependency('libxfconf-0')
-
+	gtk = dependency('gtk+-3.0')
+	xfconf = dependency('libxfconf-0')
 	global_dependencies += [gtk, xfconf]
 endif
 
 # Windows needs to be treated like a special needs child here
+# Windows is a special needs child
 explicit_libs = ''
 if host_system == 'windows'
     # Newer versions of Ruby will refuse to link without these
@@ -45,7 +84,6 @@ foreach l : explicit_libs.split(';')
 endforeach
 
 global_include_dirs += include_directories('.',
-    'audio/headers',
     'filesystem/headers',
     'graphics/headers',
     'input/headers',
@@ -57,23 +95,17 @@ global_include_dirs += include_directories('.',
     'util/headers'
 )
 
-global_dependencies += [boost, bz2, openal, zlib,  sdl2, sdl_sound, pixman, physfs, vorbisfile, vorbis, iconv, ogg, sdl2_ttf, sigcxx, sdl2_image, png, jpeg, nsgif, freetype, tiff, webp, harfbuzz]
+global_dependencies += [boost, bz2, zlib, sdl2, pixman, physfs, iconv, sdl2_ttf, sigcxx, sdl2_image, png, jpeg, nsgif, freetype, tiff, webp, harfbuzz]
 
 if host_system == 'windows'
     global_dependencies += compilers['cpp'].find_library('wsock32')
     global_dependencies += compilers['cpp'].find_library('winmm')
     global_dependencies += compilers['cpp'].find_library('Secur32')
     global_dependencies += compilers['cpp'].find_library('Shlwapi')
+    global_dependencies += compilers['cpp'].find_library('gdiplus')
 endif
 
 main_source = files(
-    'audio/source/alstream.cpp',
-	'audio/source/audiostream.cpp',
-	'audio/source/audiochannels.cpp',
-	'audio/source/audio.cpp',
-	'audio/source/soundemitter.cpp',
-	'audio/source/sdlsoundsource.cpp',
-	'audio/source/vorbissource.cpp',
 	'filesystem/source/filesystem.cpp',
 	'filesystem/source/rgssad.cpp',
 	'graphics/source/autotiles.cpp',
@@ -127,7 +159,24 @@ if steam == true
     global_args += '-DSTEAM'
 endif
 
+if fmod
+	global_args += '-DUSE_FMOD'
+else
+	global_include_dirs += include_directories('al/headers')
+	global_sources += files(
+		    'al/source/alstream.cpp',
+			'al/source/audiostream.cpp',
+			'al/source/audiochannels.cpp',
+			'al/source/audio.cpp',
+			'al/source/soundemitter.cpp',
+			'al/source/sdlsoundsource.cpp',
+			'al/source/vorbissource.cpp',
+	)
+endif
+
 if host_system == 'windows'
+    global_sources += files('modshot/source/notifications_win32.cpp')
 else
     global_sources += files('oneshot/source/xdg-user-dir-lookup.c')
+    global_sources += files('modshot/source/notifications_unix.cpp')
 endif

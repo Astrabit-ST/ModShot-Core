@@ -1,0 +1,160 @@
+name: ModShot CI
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    tags:
+      - "v*"
+    branches:
+      - master
+
+jobs:
+  build-linux:
+    name: Build ModShot for Linux
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby_ver: ['3.1', '3.0', '2.7']
+        steam: [true, false]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+      - name: Shorten SHA signature
+        run: echo "SHA7=`echo ${GITHUB_SHA} | cut -c1-7`" >> $GITHUB_ENV
+      - name: Install dependencies
+        working-directory: ${{ github.workspace }}
+        run: |
+          sudo apt update
+          bash setup.sh
+          pip3 install meson ninja
+      - name: Build Ruby ${{ matrix.ruby_ver }}
+        working-directory: ${{ github.workspace }}
+        run: cd linux; make RUBY_VER=${{ matrix.ruby_ver }}
+      - name: Build ModShot
+        working-directory: ${{ github.workspace }}
+        run: |
+          cd linux; source vars.sh; cd ..
+          meson build --prefix=$PWD/out -Dmri_version=${{ matrix.ruby_ver }} -Dsteam=${{ matrix.steam }}
+          cd build; ninja install
+      - name: Prepare artifact
+        run: |
+          mkdir ${{ runner.temp }}/artifact
+          mv ${{ github.workspace }}/out/* ${{ runner.temp }}/artifact/
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ModShot_Linux_${{ env.SHA7 }}_Ruby-${{ matrix.ruby_ver }}_Steam-${{ matrix.steam }}
+          path: ${{ runner.temp }}/artifact
+
+  build-windows:
+    name: Build ModShot for Windows
+    runs-on: windows-latest
+    needs: build-linux
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby_ver: ['3.0', '2.7']
+        sys: ['mingw64']
+        steam: [true, false]
+        include:
+          - sys: 'ucrt64'
+            ruby_ver: '3.1'
+            steam: true
+          - sys: 'ucrt64'
+            ruby_ver: '3.1'
+            steam: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.sys }}
+      - name: Shorten SHA signature
+        shell: msys2 {0}
+        run: echo "SHA7=`echo ${GITHUB_SHA} | cut -c1-7`" >> $GITHUB_ENV
+      - name: Install packages
+        shell: msys2 {0}
+        run: pacman -S --noconfirm mm-common autoconf automake gcc make cmake libtool
+      - name: Install dependencies
+        shell: msys2 {0}
+        working-directory: ${{ github.workspace }}
+        run: bash setup.sh
+      - name: Build Ruby ${{ matrix.ruby_ver }}
+        shell: msys2 {0}
+        working-directory: ${{ github.workspace }}
+        run: cd windows; make RUBY_VER=${{ matrix.ruby_ver }}
+      - name: Build ModShot
+        shell: msys2 {0}
+        working-directory: ${{ github.workspace }}
+        run: |
+          cd windows; source vars.sh; cd ..
+          meson build --prefix=$PWD/out -Dmri_version=${{ matrix.ruby_ver }} -Dsteam=${{ matrix.steam }}
+          cd build; ninja install
+      - name: Prepare artifact
+        run: |
+          mkdir ${{ runner.temp }}\artifact
+          move ${{ github.workspace }}\out\* ${{ runner.temp }}\artifact\
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ModShot_Windows_${{ env.SHA7 }}_Ruby-${{ matrix.ruby_ver }}-${{ matrix.sys }}_Steam-${{ matrix.steam }}
+          path: ${{ runner.temp }}\artifact
+
+  release-dev:
+    name: Release ModShot (dev)
+    needs: build-windows
+    runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.ref, 'refs/tags/v') && github.event_name != 'pull_request' }}
+    steps:
+      - name: Set environment variables
+        run: echo "SHA7=`echo ${GITHUB_SHA} | cut -c1-7`" >> $GITHUB_ENV
+      - name: Create directory for artifacts
+        run: mkdir ${{ runner.temp }}/artifacts
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: ci.yml
+          workflow_conclusion: success
+          path: ${{ runner.temp }}/artifacts
+          skip_unpack: true
+      - name: Release ModShot
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          title: ModShot ${{ env.SHA7 }}-dev
+          prerelease: true
+          automatic_release_tag: latest
+          files: ${{ runner.temp }}/artifacts/*.zip
+
+  release-tagged:
+    name: Release ModShot (tagged)
+    needs: build-windows
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && github.event_name != 'pull_request' }}
+    steps:
+      - name: Set environment variables
+        run: |
+          echo "SHA7=`echo ${GITHUB_SHA} | cut -c1-7`" >> $GITHUB_ENV
+          echo "RELEASE_VER=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Create directory for artifacts
+        run: mkdir ${{ runner.temp }}/artifacts
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: ci.yml
+          workflow_conclusion: success
+          path: ${{ runner.temp }}/artifacts
+          skip_unpack: true
+      - name: Release ModShot
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          title: ModShot ${{ env.RELEASE_VER }}-${{ env.SHA7 }}
+          prerelease: false
+          automatic_release_tag: ${{ env.RELEASE_VER }}
+          files: ${{ runner.temp }}/artifacts/*.zip

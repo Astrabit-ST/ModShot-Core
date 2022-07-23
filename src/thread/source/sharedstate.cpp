@@ -25,7 +25,11 @@
 #include "filesystem.h"
 #include "graphics.h"
 #include "input.h"
+#ifndef USE_FMOD
 #include "audio.h"
+#else
+#include <fmod_studio.h>
+#endif
 #include "oneshot.h"
 #ifdef STEAM
 #include "steam.h"
@@ -65,7 +69,12 @@ struct SharedStatePrivate
 
 	Graphics graphics;
 	Input input;
+	#ifndef USE_FMOD
 	Audio audio;
+	#else
+	//FMOD_STUDIO_SYSTEM *studio_system;
+	//FMOD_SYSTEM *core_system;
+	#endif
 
 	Oneshot oneshot;
 #ifdef STEAM
@@ -102,7 +111,11 @@ struct SharedStatePrivate
 	      config(threadData->config),
 	      graphics(threadData),
 	      input(*threadData),
+		  #ifndef USE_FMOD
 	      audio(*threadData),
+		  #else
+		  //studio_system(threadData->fmodSystem),
+		  #endif
 	      oneshot(*threadData),
 	      _glState(threadData->config),
 	      fontState(threadData->config),
@@ -133,6 +146,12 @@ struct SharedStatePrivate
 		/* Reuse starting values */
 		TEXFBO::allocEmpty(gpTexFBO, globalTexW, globalTexH);
 		TEXFBO::linkFBO(gpTexFBO);
+
+		#ifdef USE_FMOD
+		//if (FMOD_Studio_System_GetCoreSystem(studio_system, &core_system) != FMOD_OK) {
+		//	throw Exception(Exception::MKXPError, "Failed to get core fmod system");
+		//}
+		#endif
 	}
 
 	~SharedStatePrivate()
@@ -204,7 +223,12 @@ GSATT(RGSSThreadData&, rtData)
 GSATT(Config&, config)
 GSATT(Graphics&, graphics)
 GSATT(Input&, input)
+#ifndef USE_FMOD
 GSATT(Audio&, audio)
+#else
+//GSATT(FMOD_STUDIO_SYSTEM*, studio_system);
+//GSATT(FMOD_SYSTEM*, core_system);
+#endif
 GSATT(Oneshot&, oneshot)
 #ifdef STEAM
 GSATT(Steam&, steam)

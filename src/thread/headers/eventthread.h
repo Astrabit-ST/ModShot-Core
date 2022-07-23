@@ -37,7 +37,11 @@
 
 #include <stdint.h>
 
+#ifndef USE_FMOD
 #include <alc.h>
+#else
+#include <fmod_studio.h>
+#endif
 
 struct RGSSThreadData;
 struct SDL_Window;
@@ -262,7 +266,11 @@ struct RGSSThreadData
 	SyncPoint syncPoint;
 
 	SDL_Window *window;
+	#ifndef USE_FMOD
 	ALCdevice *alcDev;
+	#else
+	//FMOD_STUDIO_SYSTEM *fmodSystem;
+	#endif
 
 	Vec2 sizeResoRatio;
 	Vec2i screenOffset;
@@ -276,13 +284,21 @@ struct RGSSThreadData
 
 	RGSSThreadData(EventThread *ethread,
 	               SDL_Window *window,
+				   #ifndef USE_FMOD
 	               ALCdevice *alcDev,
+				   #else
+				   //FMOD_STUDIO_SYSTEM *system,
+				   #endif
 	               int refreshRate,
 	               const Config& newconf)
 	    : allowExit(true),
 	      ethread(ethread),
 	      window(window),
+		  #ifndef USE_FMOD
 	      alcDev(alcDev),
+		  #else
+		  //fmodSystem(system),
+		  #endif
 	      sizeResoRatio(1, 1),
 	      refreshRate(refreshRate),
 	      config(newconf)

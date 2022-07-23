@@ -10,3 +10,10 @@ option('steam', type: 'boolean', value: false, description: 'Add steamworks supp
 option('build_static', type: 'boolean', value: true, description: 'Use static libraries')
 
 option('gfx_backend', type: 'combo', value: 'gl', choices: ['gl', 'gles'], description: 'Graphics rendering API to use.')
+
+option('fmod', type: 'boolean', value: false, description: 'Use FMOD bindings instead of OpenAL')
+
+option('fmod_core_lib_dir', type: 'string', value: '', description: 'Manual fmod lib dir')
+option('fmod_fsbank_lib_dir', type: 'string', value: '', description: 'Manual fmod fsbank lib dir')
+option('fmod_studio_lib_dir', type: 'string', value: '', description: 'Manual fmod studio lib dir')
+option('auto_clean_fmod', type: 'boolean', value: false, description: 'Automatically release some fmod resources')

@@ -101,15 +101,12 @@ void Config::read(int argc, char *argv[])
 	PO_DESC(mjitVerbosity, int, 0) \
 	PO_DESC(mjitMaxCache, int, 100) \
 	PO_DESC(mjitMinCalls, int, 10000) \
-	PO_DESC(jitEnabled, bool, false) \
-	PO_DESC(jitVerbosity, int, 0) \
-	PO_DESC(jitMaxCache, int, 100) \
-	PO_DESC(jitMinCalls, int, 10000) \
 	PO_DESC(yjitEnabled, bool, false) \
 	PO_DESC(yjitCallThreshold, int, 10) \
 	PO_DESC(yjitMaxVersions, int, 4) \
 	PO_DESC(yjitGreedyVersioning, bool, false) \
 	PO_DESC(winConsole, bool, false)
+	//PO_DESC(maxFmodChannels, int, 512)
 
 // Not gonna take your shit boost
 #define GUARD_ALL( exp ) try { exp } catch(...) {}
@@ -198,7 +195,7 @@ void Config::read(int argc, char *argv[])
 	game.title = "OneShot";
 	game.scripts = "Data/xScripts.rxdata";
 	gameFolder = "..";
-	
+
 	defScreenW = 640;
 	defScreenH = 480;
 

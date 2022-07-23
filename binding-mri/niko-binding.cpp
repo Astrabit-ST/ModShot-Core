@@ -38,7 +38,10 @@ namespace syswm {
 
 #define BUFFER_SIZE 256
 
-static SDL_Thread *thread = NULL;
+#ifdef LINUX
+    static SDL_Thread *thread = NULL;
+#endif
+
 static SDL_mutex *mutex = NULL;
 static volatile char message_buffer[BUFFER_SIZE];
 static volatile bool active = false;
@@ -139,29 +142,48 @@ RB_METHOD(nikoStart)
 	SDL_GetWindowWMInfo(shState->rtData().window, &syswindow);
 
 #ifdef _WIN32
-	// Calculate where to stick the window
 	POINT pos;
+	WCHAR path[MAX_PATH];
+	WCHAR args[MAX_PATH];
+
+	// Calculate where to stick the window
 	pos.x = NIKO_X;
 	pos.y = NIKO_Y;
 	ClientToScreen(syswindow.info.win.window, &pos);
-	// Start process
-	WCHAR path[MAX_PATH];
-	WCHAR args[MAX_PATH];
+
+	// Get ModShot folder and append clover executable path
 	GetModuleFileNameW(NULL, path, MAX_PATH);
 	PathRemoveFileSpecW(path);
-	wcscat(path, L"\\_______.exe");
+
+	wcscat(path, L"\\..\\_______.exe");
 	wsprintfW(args, L"_______.exe %d %d", pos.x, pos.y);
+
+	// Start clover (Niko) process
 	STARTUPINFOW si;
 	memset(&si, 0, sizeof(si));
 	si.cb = sizeof(si);
+
 	PROCESS_INFORMATION pi;
-	CreateProcessW(path, args, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+	bool result = CreateProcessW(path, args, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+
+	if (!result)
+	{
+		DWORD dwLastError = GetLastError();
+		std::wstring wPath(path);
+		std::string sPath(wPath.begin(), wPath.end());
+
+		Debug() << "Failed to start process" << sPath.c_str();
+		Debug() << "Win32 Error Code:" << dwLastError;
+	}
 #else
 	// Calculate where to stick the window
-	int x, y; // Top-left area of client (hopefully)
+	// Top-left area of client (hopefully)
+	int x, y;
 	SDL_GetWindowPosition(shState->rtData().window, &x, &y);
 	x += NIKO_X;
 	y += NIKO_Y;
+
+	// Prepare message
 	char message[32];
 	sprintf(message, "%d,%d\n", x, y);
 
@@ -202,7 +224,7 @@ void nikoBindingInit()
 
 	VALUE module = rb_define_module("Niko");
 
-	//Functions
+	// Niko:: module functions
 	_rb_define_module_function(module, "get_ready", nikoPrepare);
 	_rb_define_module_function(module, "do_your_thing", nikoStart);
 }

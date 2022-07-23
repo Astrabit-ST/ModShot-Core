@@ -15,6 +15,7 @@ const int MAX_LANGUAGES = 20;
 const int LANGCODE_SIZE = 16;
 const int LANGFONT_SIZE = 128;
 
+const char* defaultFont = "Terminus (TTF)";
 char* currentLocale = 0;
 
 struct LanguageFontAndSize {
@@ -116,7 +117,7 @@ void loadLanguageMetadata() {
 	FILE* fontSizesFile = fopen("Languages/internal/language_sizes.ini", "r");
 	if (fontSizesFile) {
 		while (fgets(line, 1024, fontSizesFile)) {
-			int languageMetadataIndex = 0;
+			//int languageMetadataIndex = 0; // unused?
 			char* indexOfEquals = strchr(line, '=');
 			if (indexOfEquals) {
 				// splitting the string in place here
@@ -167,7 +168,7 @@ char* getFontName() {
 	}
 
 	// default to terminus?
-	return "Terminus (TTF)";
+	return (char *)defaultFont;
 }
 
 void loadLocale(const char* locale) {

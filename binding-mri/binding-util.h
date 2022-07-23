@@ -48,23 +48,23 @@ enum RbException {
     PHYSFS,
     SDL,
     MKXP,
-    
+
     ErrnoENOENT,
-    
+
     IOError,
-    
+
     TypeError,
     ArgumentError,
-    
+
     RbExceptionsMax
 };
 
 struct RbData {
     VALUE exc[RbExceptionsMax];
-    
+
     /* Input module (RGSS3) */
     VALUE buttoncodeHash;
-    
+
     RbData();
     ~RbData();
 };
@@ -202,7 +202,8 @@ template <class C> inline C *getPrivateData(VALUE self) {
     C *c = static_cast<C *>(DATA_PTR(self));
 #endif
     if (!c) {
-        raiseRbExc(Exception(Exception::MKXPError, "No instance data for variable (missing call to super?)"));
+        VALUE to_string = rb_any_to_s(self);
+        raiseRbExc(Exception(Exception::MKXPError, "Private data for object %s missing (incorrect initialization?)", RSTRING_PTR(to_string)));
     }
     return c;
 }
@@ -230,7 +231,7 @@ getPrivateDataCheck(VALUE self, const char *type)
     if (!rb_typeddata_is_kind_of(self, &type))
         rb_raise(rb_eTypeError, "Can't convert %s into %s", ownname,
                  type.wrap_struct_name);
-    
+
     void *obj = RTYPEDDATA_DATA(self);
 #endif
     return static_cast<C *>(obj);
@@ -257,9 +258,9 @@ wrapObject(void *p, const char *type, VALUE underKlass = rb_cObject)
     VALUE klass = rb_const_get(underKlass, rb_intern(type));
 #endif
     VALUE obj = rb_obj_alloc(klass);
-    
+
     setPrivateData(obj, p);
-    
+
     return obj;
 }
 
@@ -271,9 +272,9 @@ inline VALUE wrapProperty(VALUE self, void *prop, const char *iv,
 #endif
                           VALUE underKlass = rb_cObject) {
     VALUE propObj = wrapObject(prop, type, underKlass);
-    
+
     rb_iv_set(self, iv, propObj);
-    
+
     return propObj;
 }
 
@@ -332,15 +333,15 @@ static inline VALUE objectLoad(int argc, VALUE *argv, VALUE self) {
     const char *data;
     int dataLen;
     rb_get_args(argc, argv, "s", &data, &dataLen RB_ARG_END);
-    
+
     VALUE obj = rb_obj_alloc(self);
-    
+
     C *c = 0;
-    
+
     GUARD_EXC(c = C::deserialize(data, dataLen););
-    
+
     setPrivateData(obj, c);
-    
+
     return obj;
 }
 
@@ -351,11 +352,11 @@ inline void rb_float_arg(VALUE arg, double *out, int argPos = 0) {
         case RUBY_T_FLOAT:
             *out = RFLOAT_VALUE(arg);
             break;
-            
+
         case RUBY_T_FIXNUM:
             *out = FIX2INT(arg);
             break;
-            
+
         default:
             rb_raise(rb_eTypeError, "Argument %d: Expected float", argPos);
     }
@@ -367,11 +368,11 @@ inline void rb_int_arg(VALUE arg, int *out, int argPos = 0) {
             // FIXME check int range?
             *out = NUM2LONG(arg);
             break;
-            
+
         case RUBY_T_FIXNUM:
             *out = FIX2INT(arg);
             break;
-            
+
         default:
             rb_raise(rb_eTypeError, "Argument %d: Expected fixnum", argPos);
     }
@@ -382,12 +383,12 @@ inline void rb_bool_arg(VALUE arg, bool *out, int argPos = 0) {
         case RUBY_T_TRUE:
             *out = true;
             break;
-            
+
         case RUBY_T_FALSE:
         case RUBY_T_NIL:
             *out = false;
             break;
-            
+
         default:
             rb_raise(rb_eTypeError, "Argument %d: Expected bool", argPos);
     }

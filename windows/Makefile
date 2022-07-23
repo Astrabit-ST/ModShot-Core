@@ -71,7 +71,7 @@ ruby: init_dirs $(BUILD_PREFIX)/$(RB_PREFIX)-ruby$(RUBY_DLL_VER).dll
 
 $(BUILD_PREFIX)/$(RB_PREFIX)-ruby$(RUBY_DLL_VER).dll: $(DOWNLOADS)/ruby/Makefile
 	cd $(DOWNLOADS)/ruby; \
-	make -j$(NPROC); make install
+	make -j$(NPROC); make install -j$(NPROC)
 
 $(DOWNLOADS)/ruby/Makefile: $(DOWNLOADS)/ruby/configure
 	cd $(DOWNLOADS)/ruby; \

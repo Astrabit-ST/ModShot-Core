@@ -26,8 +26,8 @@ begin
   Oneshot.allow_exit false
   Oneshot.exiting false
 
-#  x = Oneshot.textinput("Foo Bar")
-#  print("#{x}")
+  #  x = Oneshot.textinput("Foo Bar")
+  #  print("#{x}")
 
   # Call main method as long as $scene is effective
   while $scene != nil
@@ -38,9 +38,9 @@ begin
   Graphics.transition(20)
 
   if Journal.active?
-    Journal.set ''
+    Journal.set ""
   end
-  
+
   Oneshot.allow_exit true
 rescue Errno::ENOENT
   # Supplement Errno::ENOENT exception

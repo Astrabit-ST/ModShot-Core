@@ -25,10 +25,10 @@ binding_source = [files(
     'graphics-binding.cpp',
     'input-binding.cpp',
     'journal-binding.cpp',
-    'modshot-window-binding.cpp',
     'module_rpg.cpp',
     'niko-binding.cpp',
     'oneshot-binding.cpp',
+    'modshot-binding.cpp',
     'plane-binding.cpp',
     'screen-binding.cpp',
     'shader-binding.cpp',
@@ -40,5 +40,29 @@ binding_source = [files(
     'wallpaper-binding.cpp',
     'window-binding.cpp',
 )]
+
+if fmod
+global_sources += [files(
+    'fmod-binding/studio/fmod-studio-binding.cpp',
+    'fmod-binding/studio/system.cpp',
+    'fmod-binding/studio/bank.cpp',
+    'fmod-binding/studio/vca.cpp',
+    'fmod-binding/studio/bus.cpp',
+    'fmod-binding/studio/eventdescription.cpp',
+    'fmod-binding/studio/eventinstance.cpp',
+    'fmod-binding/studio/commandreplay.cpp',
+    'fmod-binding/studio/common_structs.cpp',
+    'fmod-binding/core/fmod-core-binding.cpp',
+    'fmod-binding/core/system.cpp',
+    'fmod-binding/core/common_structs.cpp',
+    'fmod-binding/fmod_enums.cpp',
+)]
+global_include_dirs += include_directories('fmod-binding')
+else
+global_sources += [files(
+    'al-binding/aleffect-binding.cpp',
+    'al-binding/audio-binding.cpp'
+)]
+endif
 
 global_sources += binding_source

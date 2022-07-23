@@ -15,17 +15,14 @@ function fail() {
 }
 
 function copy_dependencies() {
-    if [[ ${2@L} = /c/windows/system32/* ]]; then
-        return
-    fi
-    if [[ -f "$DESTDIR/$1" ]]; then
+    if [[ ${2@L} = /c/windows/* ]]; then
         return
     fi
     echo "Copying $1..."
 
     [[ ! $1 =~ ^[a-zA-Z0-9+\._-]*$ ]] && fail "The library $1 has weird characters!"
 
-    cp "$2" "$DESTDIR/$1"
+    cp "$2" "$DESTDIR/$1" -f
     ldd "$2" | while read -ra line; do
         [[ ${line[1]} != '=>' ]] && echo ${line[*]} && fail "ldd's output isn't what this script expected!"
         [[ ! ${line[3]} =~ ^\(0x[0-9a-f]*\)$ ]] && echo ${line[*]} && fail "ldd's output isn't what this script expected!"
