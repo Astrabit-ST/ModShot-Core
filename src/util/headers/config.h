@@ -28,79 +28,52 @@
 
 struct Config
 {
-	int rgssVersion;
+	int rgssVersion = 1;
 
-	bool debugMode;
-	bool screenMode;
-	bool printFPS;
+	bool debugMode = false;
+	bool screenMode = false;
+	bool printFPS = false;
 
-	bool fullscreen;
-	bool fixedAspectRatio;
-	bool smoothScaling;
-	bool vsync;
+	bool fullscreen = false;
+	bool fixedAspectRatio = false;
+	bool smoothScaling = false;
+	bool vsync = true;
 
-	int defScreenW;
-	int defScreenH;
-	std::string windowTitle;
+	int defScreenW = 640;
+	int defScreenH = 480;
+	std::string windowTitle = "";
 
-	int fixedFramerate;
-	bool frameSkip;
-	bool syncToRefreshrate;
+	int fixedFramerate = 0;
+	bool frameSkip = true;
+	bool syncToRefreshrate = false;
 
-	bool solidFonts;
+	bool solidFonts = false;
 
-	bool subImageFix;
-	bool enableBlitting;
-	int maxTextureSize;
+	bool subImageFix = false;
+	bool enableBlitting = true;
+	int maxTextureSize = 0;
 
-	std::string gameFolder;
-	bool allowSymlinks;
-	bool pathCache;
+	std::string gameFolder ="..";
+	bool allowSymlinks = false;
+	bool pathCache = true;
 
-	/*
-	MJIT options (experimental):
-	  --mjit-warnings Enable printing JIT warnings
-	  --mjit-debug    Enable JIT debugging (very slow), or add cflags if specified
-	  --mjit-wait     Wait until JIT compilation finishes every time (for testing)
-	  --mjit-save-temps
-	                  Save JIT temporary files in $TMP or /tmp (for testing)
-	  --mjit-verbose=num
-	                  Print JIT logs of level num or less to stderr (default: 0)
-	  --mjit-max-cache=num
-	                  Max number of methods to be JIT-ed in a cache (default: 10000)
-	  --mjit-min-calls=num
-	                  Number of calls to trigger JIT (for testing, default: 10000)
+	bool mjitEnabled = false;
+	int mjitVerbosity = 0;
+	int mjitMaxCache = 100;
+	int mjitMinCalls = 10000;
 
-	YJIT options (experimental):
-	  --yjit-exec-mem-size=num
-	                  Size of executable memory block in MiB (default: 256)
-	  --yjit-call-threshold
-	                  Number of calls to trigger JIT (default: 10)
-	  --yjit-max-versions
-	                  Maximum number of versions per basic block (default: 4)
-	  --yjit-greedy-versioning
-	                  Greedy versioning mode (default: disabled)
-	*/
+	bool yjitEnabled = false;
+	int yjitCallThreshold = 10;
+	int yjitMaxVersions = 4;
+	bool yjitGreedyVersioning = false;
 
-	bool mjitEnabled;
-	int mjitVerbosity;
-	int mjitMaxCache;
-	int mjitMinCalls;
+	bool winConsole = false;
 
-	bool yjitEnabled;
-	int yjitCallThreshold;
-	int yjitMaxVersions;
-	bool yjitGreedyVersioning;
-
-	bool winConsole;
-
-	//int maxFmodChannels;
-
-	std::string iconPath;
+	std::string iconPath = "";
 
 	struct
 	{
-		int sourceCount;
+		int sourceCount = 64;
 	} SE;
 
 	int audioChannels;
@@ -117,23 +90,23 @@ struct Config
 
 	/* Editor flags */
 	struct {
-		bool debug;
-		bool battleTest;
+		bool debug = false;
+		bool battleTest = false;
 	} editor;
 
 	/* Game INI contents */
 	struct {
-		std::string scripts;
-		std::string title;
+		std::string scripts = "Data/xScripts.rxdata";
+		std::string title = "OneShot";
 	} game;
 
 	/* Internal */
 	std::string customDataPath;
-	std::string commonDataPath;
+	std::string commonDataPath = "OneShot";
 
 	Config();
 
-	void read(int argc, char *argv[]);
+	void read(int argc, char *argv[], void (*errorFunc)(const std::string&));
 };
 
 #endif // CONFIG_H

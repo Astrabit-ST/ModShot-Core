@@ -103,6 +103,22 @@ $(DOWNLOADS)/libnsgif/configure: $(DOWNLOADS)/libnsgif/autogen.sh
 $(DOWNLOADS)/libnsgif/autogen.sh:
 	$(CLONE) $(GITHUB)/jcupitt/libnsgif-autotools $(DOWNLOADS)/libnsgif
 
+argparse: init_dirs ${INCLUDEDIR}/argparse/argparse.hpp
+
+$(INCLUDEDIR)/argparse/argparse.hpp: $(DOWNLOADS)/argparse
+	cp $(DOWNLOADS)/argparse/include/* $(INCLUDEDIR) -r
+
+$(DOWNLOADS)/argparse:
+	$(CLONE) $(GITHUB)/p-ranav/argparse $(DOWNLOADS)/argparse
+
+tomlplusplus: init_dirs ${INCLUDEDIR}/toml++/toml.h
+
+$(INCLUDEDIR)/toml++/toml.h: $(DOWNLOADS)/tomlplusplus
+	cp $(DOWNLOADS)/tomlplusplus/include/* $(INCLUDEDIR) -r
+
+$(DOWNLOADS)/tomlplusplus:
+	$(CLONE) $(GITHUB)/marzer/tomlplusplus $(DOWNLOADS)/tomlplusplus
+
 # ====
 init_dirs:
 	@mkdir -p $(LIBDIR) $(INCLUDEDIR)
@@ -112,5 +128,5 @@ powerwash: clean-downloads
 clean-downloads:
 	-rm -rf downloads
 
-deps-core: sdlsound iconv libnsgif
+deps-core: argparse tomlplusplus sdlsound iconv libnsgif
 everything: deps-core ruby

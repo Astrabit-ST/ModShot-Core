@@ -9,8 +9,6 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-//#include <SDL2/SDL_syswm.h>
-#include <boost/crc.hpp>
 
 #ifdef _WIN32
 	#define WIN32_LEAN_AND_MEAN

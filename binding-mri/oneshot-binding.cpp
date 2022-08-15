@@ -6,7 +6,6 @@
 #include "eventthread.h"
 
 #include <SDL2/SDL.h>
-#include <boost/crc.hpp>
 
 RB_METHOD(oneshotSetYesNo)
 {
@@ -90,13 +89,12 @@ RB_METHOD(oneshotShake)
 
 RB_METHOD(oneshotCRC32)
 {
-	RB_UNUSED_PARAM;
 	VALUE string;
-	boost::crc_32_type result;
-	rb_get_args(argc, argv, "S", &string RB_ARG_END);
-	std::string str = std::string(RSTRING_PTR(string), RSTRING_LEN(string));
-	result.process_bytes(str.data(), str.length());
-	return UINT2NUM(result.checksum());
+	rb_get_args(argc, argv, "o", &string RB_ARG_END);
+
+	rb_raise(rb_eNotImpError, "Oneshot.crc32 is depreceated. Please require zlib and use Zilb.crc32 instead.");
+
+	return Qnil;
 }
 
 void oneshotBindingInit()

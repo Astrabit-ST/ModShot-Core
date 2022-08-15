@@ -1,4 +1,3 @@
-boost = dependency('boost', version: '>=1.49', modules: ['program_options'], static: build_static)
 physfs = dependency('physfs', version: '>=2.1', static: build_static)
 sdl2 = dependency('SDL2', static: build_static)
 freetype = dependency('freetype2', static: build_static)
@@ -95,7 +94,7 @@ global_include_dirs += include_directories('.',
     'util/headers'
 )
 
-global_dependencies += [boost, bz2, zlib, sdl2, pixman, physfs, iconv, sdl2_ttf, sigcxx, sdl2_image, png, jpeg, nsgif, freetype, tiff, webp, harfbuzz]
+global_dependencies += [bz2, zlib, sdl2, pixman, physfs, iconv, sdl2_ttf, sigcxx, sdl2_image, png, jpeg, nsgif, freetype, tiff, webp, harfbuzz]
 
 if host_system == 'windows'
     global_dependencies += compilers['cpp'].find_library('wsock32')

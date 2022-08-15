@@ -306,7 +306,7 @@ int main(int argc, char *argv[]) {
 
 	/* now we load the config */
 	Config conf;
-	conf.read(argc, argv);
+	conf.read(argc, argv, &showInitError);
 
 	if (!conf.gameFolder.empty())
 		if (chdir(conf.gameFolder.c_str()) != 0)
