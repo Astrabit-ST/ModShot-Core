@@ -21,7 +21,6 @@
 
 #include "filesystem.h"
 
-#include "rgssad.h"
 #include "font.h"
 #include "util.h"
 #include "exception.h"
@@ -318,10 +317,6 @@ FileSystem::FileSystem(bool allowSymlinks)
 {
 	p = new FileSystemPrivate;
 	p->havePathCache = false;
-
-	PHYSFS_registerArchiver(&RGSS1_Archiver);
-	PHYSFS_registerArchiver(&RGSS2_Archiver);
-	PHYSFS_registerArchiver(&RGSS3_Archiver);
 
 	if (allowSymlinks)
 		PHYSFS_permitSymbolicLinks(1);

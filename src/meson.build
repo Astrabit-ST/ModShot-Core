@@ -107,7 +107,6 @@ endif
 
 main_source = files(
 	'filesystem/source/filesystem.cpp',
-	'filesystem/source/rgssad.cpp',
 	'graphics/source/autotiles.cpp',
 	'graphics/source/bitmap.cpp',
 	'graphics/source/graphics.cpp',
