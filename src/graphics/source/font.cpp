@@ -64,9 +64,9 @@ SharedFontState::SharedFontState(const Config &conf)
 	p = new SharedFontStatePrivate;
 
 	/* Parse font substitutions */
-	for (size_t i = 0; i < conf.fontSubs.size(); ++i)
+	for (size_t i = 0; i < conf.paths.fontSubs.size(); ++i)
 	{
-		const std::string &raw = conf.fontSubs[i];
+		const std::string &raw = conf.paths.fontSubs[i];
 		size_t sepPos = raw.find_first_of('>');
 
 		if (sepPos == std::string::npos)

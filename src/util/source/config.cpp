@@ -24,6 +24,7 @@
 #include "debugwriter.h"
 #include "sdl-util.h"
 #include <toml++/toml.h>
+#include <argparse/argparse.hpp>
 #include <sstream>
 
 #define CONF_FILE "../modshot.toml"
@@ -52,5 +53,5 @@ void Config::read(int argc, char *argv[], void (*errorFunc)(const std::string &)
 		}
 	}
 
-	SE.sourceCount = clamp(SE.sourceCount, 1, 64);
+	audio.sourceCount = clamp(audio.sourceCount, 1, 64);
 }

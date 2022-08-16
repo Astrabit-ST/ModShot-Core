@@ -28,85 +28,92 @@
 
 struct Config
 {
-	int rgssVersion = 1;
+	struct
+	{
+		bool printFPS = false;
+		bool fullscreen = false;
+		bool fixedAspectRatio = false;
+		bool smoothScaling = false;
+		bool vsync = true;
+		bool subImageFix = false;
+		bool enableBlitting = true;
+		bool frameSkip = true;
+		bool syncToRefreshrate = false;
+		bool solidFonts = false;
 
-	bool debugMode = false;
-	bool screenMode = false;
-	bool printFPS = false;
+		int defScreenW = 640;
+		int defScreenH = 480;
+		int maxTextureSize = 0;
+		int fixedFramerate = 0;
+	} graphics;
 
-	bool fullscreen = false;
-	bool fixedAspectRatio = false;
-	bool smoothScaling = false;
-	bool vsync = true;
+	struct
+	{
+		bool enabled = false;
 
-	int defScreenW = 640;
-	int defScreenH = 480;
-	std::string windowTitle = "";
+		int verbosity = 0;
+		int maxCache = 100;
+		int minCalls = 10000;
+	} mjit;
 
-	int fixedFramerate = 0;
-	bool frameSkip = true;
-	bool syncToRefreshrate = false;
+	struct
+	{
+		bool enabled = false;
+		bool greedyVersioning = false;
 
-	bool solidFonts = false;
-
-	bool subImageFix = false;
-	bool enableBlitting = true;
-	int maxTextureSize = 0;
-
-	std::string gameFolder ="..";
-	bool allowSymlinks = false;
-	bool pathCache = true;
-
-	bool mjitEnabled = false;
-	int mjitVerbosity = 0;
-	int mjitMaxCache = 100;
-	int mjitMinCalls = 10000;
-
-	bool yjitEnabled = false;
-	int yjitCallThreshold = 10;
-	int yjitMaxVersions = 4;
-	bool yjitGreedyVersioning = false;
-
-	bool winConsole = false;
-
-	std::string iconPath = "";
+		int callThreshold = 10;
+		int maxVersions = 4;
+	} yjit;
 
 	struct
 	{
 		int sourceCount = 64;
-	} SE;
+		int audioChannels = 0;
+	} audio;
 
-	int audioChannels;
+	struct
+	{
+		std::vector<std::string> rtps;
+		std::vector<std::string> fontSubs;
+		std::vector<std::string> rubyLoadpaths;
 
-	bool useScriptNames;
+		std::string customDataPath;
+		std::string commonDataPath = "OneShot";
+		std::string iconPath = "";
 
-	std::string customScript;
-	std::set<std::string> preloadScripts;
-	std::vector<std::string> rtps;
-
-	std::vector<std::string> fontSubs;
-
-	std::vector<std::string> rubyLoadpaths;
+		bool useScriptNames;
+		bool allowSymlinks = false;
+		bool pathCache = true;
+	} paths;
 
 	/* Editor flags */
-	struct {
+	struct
+	{
 		bool debug = false;
 		bool battleTest = false;
 	} editor;
 
 	/* Game INI contents */
-	struct {
+	struct
+	{
 		std::string scripts = "Data/xScripts.rxdata";
 		std::string title = "OneShot";
-	} game;
+		std::string folder = "..";
+		std::string windowTitle = "";
+		std::string customScript;
 
-	/* Internal */
-	std::string customDataPath;
-	std::string commonDataPath = "OneShot";
+		std::set<std::string> preloadScripts;
+
+		int rgssVersion = 1;
+
+		bool console = false;
+		bool debugMode = false;
+		bool screenMode = false;
+	} game;
 
 	Config();
 
-	void read(int argc, char *argv[], void (*errorFunc)(const std::string&));
+	void read(int argc, char *argv[], void (*errorFunc)(const std::string &));
 };
 
 #endif // CONFIG_H

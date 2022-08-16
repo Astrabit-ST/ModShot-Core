@@ -124,7 +124,7 @@ int rgssThreadFun(void *userdata)
 		return 0;
 	}
 
-	if (!conf.enableBlitting)
+	if (!conf.graphics.enableBlitting)
 		gl.BlitFramebuffer = 0;
 
 	gl.ClearColor(0, 0, 0, 1);
@@ -133,7 +133,7 @@ int rgssThreadFun(void *userdata)
 
 	printGLInfo();
 
-	bool vsync = conf.vsync || conf.syncToRefreshrate;
+	bool vsync = conf.graphics.vsync || conf.graphics.syncToRefreshrate;
 	SDL_GL_SetSwapInterval(vsync ? 1 : 0);
 
 #ifndef NDEBUG
@@ -196,10 +196,10 @@ static void setupWindowIcon(const Config &conf, SDL_Window *win)
 {
 	SDL_RWops *iconSrc;
 
-	if (conf.iconPath.empty())
+	if (conf.paths.iconPath.empty())
 		iconSrc = SDL_RWFromConstMem(___assets_icon_png, ___assets_icon_png_len);
 	else
-		iconSrc = SDL_RWFromFile(conf.iconPath.c_str(), "rb");
+		iconSrc = SDL_RWFromFile(conf.paths.iconPath.c_str(), "rb");
 
 	SDL_Surface *iconImg = IMG_Load_RW(iconSrc, SDL_TRUE);
 
@@ -308,10 +308,10 @@ int main(int argc, char *argv[]) {
 	Config conf;
 	conf.read(argc, argv, &showInitError);
 
-	if (!conf.gameFolder.empty())
-		if (chdir(conf.gameFolder.c_str()) != 0)
+	if (!conf.game.folder.empty())
+		if (chdir(conf.game.folder.c_str()) != 0)
 		{
-			showInitError(std::string("Unable to switch into gameFolder ") + conf.gameFolder);
+			showInitError(std::string("Unable to switch into game folder ") + conf.game.folder);
 			return 0;
 		}
 
@@ -331,11 +331,11 @@ int main(int argc, char *argv[]) {
 
 
 	extern int screenMain(Config &conf);
-	if (conf.screenMode)
+	if (conf.game.screenMode)
 		return screenMain(conf);
 
-	if (conf.windowTitle.empty())
-		conf.windowTitle = conf.game.title;
+	if (conf.game.windowTitle.empty())
+		conf.game.windowTitle = conf.game.title;
 
 	int imgFlags = IMG_INIT_PNG;
 	if (IMG_Init(imgFlags) != imgFlags)
@@ -374,12 +374,12 @@ int main(int argc, char *argv[]) {
 	// 	winFlags |= SDL_WINDOW_RESIZABLE;
 	// #endif
 
-	if (conf.fullscreen)
+	if (conf.graphics.fullscreen)
 		winFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
-	win = SDL_CreateWindow(conf.windowTitle.c_str(),
+	win = SDL_CreateWindow(conf.game.windowTitle.c_str(),
 	                       SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-	                       conf.defScreenW, conf.defScreenH, winFlags);
+	                       conf.graphics.defScreenW, conf.graphics.defScreenH, winFlags);
 
 	if (!win)
 	{
@@ -413,21 +413,7 @@ int main(int argc, char *argv[]) {
 	if(alcIsExtensionPresent(alcDev, "ALC_EXT_EFX") != ALC_TRUE) {
 		showInitError("OpenAL device does not support Effects extension.");
 	}
-	#else
-	//FMOD_RESULT result;
-	//FMOD_STUDIO_SYSTEM *system = NULL;
-	//
-	//result = FMOD_Studio_System_Create(&system, FMOD_VERSION);
-	//if (result != FMOD_OK) {
-	//	showInitError(std::string("Error creating FMOD system: ") + FMOD_ErrorString(result));
-	//	return 0;
-	//}
 
-	//result = FMOD_Studio_System_Initialize(system, conf.maxFmodChannels, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, 0);
-	//if (result != FMOD_OK) {
-	//	showInitError(std::string("Error initializing FMOD system: ") + FMOD_ErrorString(result));
-	//	return 0;
-	//}
 	#endif
 
 	SDL_DisplayMode mode;
@@ -435,7 +421,7 @@ int main(int argc, char *argv[]) {
 
 	/* Can't sync to display refresh rate if its value is unknown */
 	if (!mode.refresh_rate)
-		conf.syncToRefreshrate = false;
+		conf.graphics.syncToRefreshrate = false;
 
 	EventThread eventThread;
 	RGSSThreadData rtData(&eventThread, win,
@@ -493,13 +479,13 @@ int main(int argc, char *argv[]) {
 		if (rtData.rqTermAck)
 			SDL_WaitThread(rgssThread, 0);
 		else
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.windowTitle.c_str(),
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.game.windowTitle.c_str(),
 									"The RGSS script seems to be stuck and OneShot will now force quit", win);
 
 		if (!rtData.rgssErrorMsg.empty())
 		{
 			Debug() << rtData.rgssErrorMsg;
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.windowTitle.c_str(),
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.game.windowTitle.c_str(),
 									rtData.rgssErrorMsg.c_str(), win);
 		}
 	}

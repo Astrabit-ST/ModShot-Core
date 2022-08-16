@@ -391,7 +391,7 @@ void Bitmap::stretchBlt(const IntRect &destRect,
 
 	SDL_Surface *srcSurf = source.megaSurface();
 
-	if (srcSurf && shState->config().subImageFix)
+	if (srcSurf && shState->config().graphics.subImageFix)
 	{
 		/* Blit from software surface, for broken GL drivers */
 		Vec2i gpTexSize;
@@ -1053,7 +1053,7 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
 
 	SDL_Surface *txtSurf;
 
-	if (shState->rtData().config.solidFonts)
+	if (shState->rtData().config.graphics.solidFonts)
 		txtSurf = TTF_RenderUTF8_Solid(font, str, c);
 	else
 		txtSurf = TTF_RenderUTF8_Blended(font, str, c);
@@ -1074,7 +1074,7 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
 		SDL_Surface *outline;
 		/* set the next font render to render the outline */
 		TTF_SetFontOutline(font, OUTLINE_SIZE);
-		if (shState->rtData().config.solidFonts)
+		if (shState->rtData().config.graphics.solidFonts)
 			outline = TTF_RenderUTF8_Solid(font, str, co);
 		else
 			outline = TTF_RenderUTF8_Blended(font, str, co);
@@ -1126,7 +1126,7 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
 
 	if (fastBlit)
 	{
-		if (squeeze == 1.0f && !shState->config().subImageFix)
+		if (squeeze == 1.0f && !shState->config().graphics.subImageFix)
 		{
 			/* Even faster: upload directly to bitmap texture.
 			 * We have to make sure the posRect lies within the texture

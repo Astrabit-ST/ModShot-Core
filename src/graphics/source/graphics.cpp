@@ -693,7 +693,7 @@ struct GraphicsPrivate
 	GraphicsPrivate(RGSSThreadData *rtData)
 	    : scRes(DEF_SCREEN_W, DEF_SCREEN_H),
 	      scSize(scRes),
-	      winSize(rtData->config.defScreenW, rtData->config.defScreenH),
+	      winSize(rtData->config.graphics.defScreenW, rtData->config.graphics.defScreenH),
 	      screen(scRes.x, scRes.y),
 	      threadData(rtData),
 	      glCtx(SDL_GL_GetCurrentContext()),
@@ -741,7 +741,7 @@ struct GraphicsPrivate
 	{
 		scSize = winSize;
 
-		if (!rtData->config.fixedAspectRatio)
+		if (!rtData->config.graphics.fixedAspectRatio)
 		{
 			scOffset = Vec2i(0, 0);
 			return;
@@ -812,7 +812,7 @@ struct GraphicsPrivate
 	{
 		GLMeta::blitRectangle(IntRect(0, 0, scRes.x, scRes.y),
 		                      IntRect(scOffset.x, scSize.y+scOffset.y, scSize.x, -scSize.y),
-		                      threadData->config.smoothScaling);
+		                      threadData->config.graphics.smoothScaling);
 	}
 
 	void redrawScreen()
@@ -856,16 +856,16 @@ Graphics::Graphics(RGSSThreadData *data)
 {
 	p = new GraphicsPrivate(data);
 
-	if (data->config.syncToRefreshrate)
+	if (data->config.graphics.syncToRefreshrate)
 	{
 		p->frameRate = data->refreshRate;
 		p->fpsLimiter.disabled = true;
 	}
-	else if (data->config.fixedFramerate > 0)
+	else if (data->config.graphics.fixedFramerate > 0)
 	{
-		p->fpsLimiter.setDesiredFPS(data->config.fixedFramerate);
+		p->fpsLimiter.setDesiredFPS(data->config.graphics.fixedFramerate);
 	}
-	else if (data->config.fixedFramerate < 0)
+	else if (data->config.graphics.fixedFramerate < 0)
 	{
 		p->fpsLimiter.disabled = true;
 	}
@@ -888,7 +888,7 @@ void Graphics::update(bool limitFps)
 	{
 		if (p->fpsLimiter.frameSkipRequired())
 		{
-			if (p->threadData->config.frameSkip)
+			if (p->threadData->config.graphics.frameSkip)
 			{
 				/* Skip frame */
 				p->fpsLimiter.delay();
@@ -1063,10 +1063,10 @@ void Graphics::setFrameRate(int value)
 {
 	p->frameRate = clamp(value, 10, 120);
 
-	if (p->threadData->config.syncToRefreshrate)
+	if (p->threadData->config.graphics.syncToRefreshrate)
 		return;
 
-	if (p->threadData->config.fixedFramerate > 0)
+	if (p->threadData->config.graphics.fixedFramerate > 0)
 		return;
 
 	p->fpsLimiter.setDesiredFPS(p->frameRate);
@@ -1238,22 +1238,22 @@ void Graphics::setFullscreen(bool value)
 
 bool Graphics::getSmooth() const
 {
-	return p->threadData->config.smoothScaling;
+	return p->threadData->config.graphics.smoothScaling;
 }
 
 void Graphics::setSmooth(bool value)
 {
-	p->threadData->config.smoothScaling = value;
+	p->threadData->config.graphics.smoothScaling = value;
 }
 
 bool Graphics::getFrameskip() const
 {
-	return p->threadData->config.frameSkip;
+	return p->threadData->config.graphics.frameSkip;
 }
 
 void Graphics::setFrameskip(bool value)
 {
-	p->threadData->config.frameSkip = value;
+	p->threadData->config.graphics.frameSkip = value;
 }
 
 bool Graphics::getShowCursor() const

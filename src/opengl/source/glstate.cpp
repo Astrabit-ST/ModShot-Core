@@ -123,6 +123,6 @@ GLState::GLState(const Config &conf)
 	scissorBox.init(IntRect(0, 0, 640, 480));
 	program.init(0);
 
-	if (conf.maxTextureSize > 0)
-		caps.maxTexSize = conf.maxTextureSize;
+	if (conf.graphics.maxTextureSize > 0)
+		caps.maxTexSize = conf.graphics.maxTextureSize;
 }

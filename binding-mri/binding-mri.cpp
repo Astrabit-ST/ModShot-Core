@@ -256,7 +256,7 @@ RB_METHOD(mkxpDataDirectory)
 {
 	RB_UNUSED_PARAM;
 
-	const std::string &path = shState->config().customDataPath;
+	const std::string &path = shState->config().paths.customDataPath;
 	const char *s = path.empty() ? "." : path.c_str();
 
 	return rb_str_new_cstr(s);
@@ -480,7 +480,7 @@ static void runRMXPScripts(BacktraceData &btData)
 	}
 
 	/* Set the debug flag */
-	rb_gv_set("$debug", conf.debugMode ? Qtrue : Qfalse);
+	rb_gv_set("$debug", conf.game.debugMode ? Qtrue : Qfalse);
 
 	rb_gv_set("$RGSS_SCRIPTS", scriptArray);
 
@@ -537,9 +537,8 @@ static void runRMXPScripts(BacktraceData &btData)
 	}
 
 	/* Execute preloaded scripts */
-	for (std::set<std::string>::iterator i = conf.preloadScripts.begin();
-	     i != conf.preloadScripts.end(); ++i)
-		runCustomScript(*i);
+	for (auto &i : conf.game.preloadScripts)
+		runCustomScript(i);
 
 	VALUE exc = rb_gv_get("$!");
 	if (exc != Qnil)
@@ -666,20 +665,20 @@ static void mriBindingExecute()
 	std::vector<const char*> rubyArgsC{"oneshot"};
 	rubyArgsC.push_back("-e ");
 	void *node;
-	if (conf.mjitEnabled) {
-		std::string verboseLevel("--mjit-verbose="); verboseLevel += std::to_string(conf.mjitVerbosity);
-        std::string maxCache("--mjit-max-cache="); maxCache += std::to_string(conf.mjitMaxCache);
-        std::string minCalls("--mjit-min-calls="); minCalls += std::to_string(conf.mjitMinCalls);
+	if (conf.mjit.enabled) {
+		std::string verboseLevel("--mjit-verbose="); verboseLevel += std::to_string(conf.mjit.verbosity);
+        std::string maxCache("--mjit-max-cache="); maxCache += std::to_string(conf.mjit.maxCache);
+        std::string minCalls("--mjit-min-calls="); minCalls += std::to_string(conf.mjit.minCalls);
         rubyArgsC.push_back("--mjit");
         rubyArgsC.push_back(verboseLevel.c_str());
         rubyArgsC.push_back(maxCache.c_str());
         rubyArgsC.push_back(minCalls.c_str());
 	}
 
-	if (conf.yjitEnabled) {
-		std::string callThreshold("--yjit-call-threshold="); callThreshold += std::to_string(conf.yjitCallThreshold);
-		std::string maxVersions("--yjit-max-versions="); maxVersions += std::to_string(conf.yjitMaxVersions);
-		std::string greedyVersioning("--yjit-greedy-versioning"); greedyVersioning += std::to_string(conf.yjitGreedyVersioning);
+	if (conf.yjit.enabled) {
+		std::string callThreshold("--yjit-call-threshold="); callThreshold += std::to_string(conf.yjit.callThreshold);
+		std::string maxVersions("--yjit-max-versions="); maxVersions += std::to_string(conf.yjit.maxVersions);
+		std::string greedyVersioning("--yjit-greedy-versioning"); greedyVersioning += std::to_string(conf.yjit.greedyVersioning);
 		rubyArgsC.push_back("--yjit");
 		rubyArgsC.push_back(callThreshold.c_str());
 		rubyArgsC.push_back(maxVersions.c_str());
@@ -701,15 +700,13 @@ static void mriBindingExecute()
 
 	rb_enc_set_default_external(rb_enc_from_encoding(rb_utf8_encoding()));
 
-	if (!conf.rubyLoadpaths.empty())
+	if (!conf.paths.rubyLoadpaths.empty())
 	{
 		/* Setup custom load paths */
 		VALUE lpaths = rb_gv_get(":");
 
-		for (size_t i = 0; i < conf.rubyLoadpaths.size(); ++i)
+		for (auto &path : conf.paths.rubyLoadpaths)
 		{
-			std::string &path = conf.rubyLoadpaths[i];
-
 			VALUE pathv = rb_str_new(path.c_str(), path.size());
 			rb_ary_push(lpaths, pathv);
 		}

@@ -148,14 +148,14 @@ void EventThread::process(RGSSThreadData &rtData)
 		SDL_SetEventFilter(eventFilter, &rtData);
 	#endif
 
-	fullscreen = rtData.config.fullscreen;
+	fullscreen = rtData.config.graphics.fullscreen;
 
 	fps.lastFrame = SDL_GetPerformanceCounter();
 	fps.displayCounter = 0;
 	fps.acc = 0;
 	fps.accDiv = 0;
 
-	if (rtData.config.printFPS)
+	if (rtData.config.graphics.printFPS)
 		fps.sendUpdates.set();
 
 	bool displayingFPS = false;
@@ -392,18 +392,18 @@ void EventThread::process(RGSSThreadData &rtData)
 				{
 					displayingFPS = false;
 
-					if (!rtData.config.printFPS)
+					if (!rtData.config.graphics.printFPS)
 						fps.sendUpdates.clear();
 
 					if (fullscreen)
 					{
 						/* Prevent fullscreen flicker */
-						strncpy(pendingTitle, rtData.config.windowTitle.c_str(),
+						strncpy(pendingTitle, rtData.config.game.windowTitle.c_str(),
 						        sizeof(pendingTitle));
 						break;
 					}
 
-					SDL_SetWindowTitle(win, rtData.config.windowTitle.c_str());
+					SDL_SetWindowTitle(win, rtData.config.game.windowTitle.c_str());
 				}
 
 				break;
@@ -420,7 +420,7 @@ void EventThread::process(RGSSThreadData &rtData)
 
 			if (event.key.keysym.scancode == SDL_SCANCODE_F12)
 			{
-				if (!rtData.config.debugMode)
+				if (!rtData.config.game.debugMode)
 					break;
 
 				if (resetting)
@@ -455,7 +455,7 @@ void EventThread::process(RGSSThreadData &rtData)
 			modkeys = event.key.keysym.mod;
 			if (event.key.keysym.scancode == SDL_SCANCODE_F12)
 			{
-				if (!rtData.config.debugMode)
+				if (!rtData.config.game.debugMode)
 					break;
 
 				resetting = false;
@@ -606,7 +606,7 @@ void EventThread::process(RGSSThreadData &rtData)
 
 			case REQUEST_MESSAGEBOX :
 				SDL_ShowSimpleMessageBox(event.user.code,
-				                         rtData.config.windowTitle.c_str(),
+				                         rtData.config.game.windowTitle.c_str(),
 				                         (const char*) event.user.data1, win);
 				free(event.user.data1);
 				msgBoxDone.set();
@@ -618,14 +618,14 @@ void EventThread::process(RGSSThreadData &rtData)
 				break;
 
 			case UPDATE_FPS :
-				if (rtData.config.printFPS)
+				if (rtData.config.graphics.printFPS)
 					Debug() << "FPS:" << event.user.code;
 
 				if (!fps.sendUpdates)
 					break;
 
 				snprintf(buffer, sizeof(buffer), "%s - %d FPS",
-				         rtData.config.windowTitle.c_str(), event.user.code);
+				         rtData.config.game.windowTitle.c_str(), event.user.code);
 
 				/* Updating the window title in fullscreen
 				 * mode seems to cause flickering */

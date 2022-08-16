@@ -40,7 +40,7 @@ static void start()
 	pid_t pid = fork();
 	if (pid == 0) {
 		execl(exename.c_str(), "oneshot",
-		      (std::string("--gameFolder=") + shState->config().gameFolder).c_str(),
+		      (std::string("--gameFolder=") + shState->config().game.folder).c_str(),
 		      "--screenMode=true", NULL);
 		exit(1);
 	}
