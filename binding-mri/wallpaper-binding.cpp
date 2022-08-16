@@ -384,9 +384,9 @@ end:
 	{
 		std::stringstream command;
 		std::string concatPath(gameDirStr + path);
-		std::regex_replace(picture, std::regex("\\\\"), "\\\\");
-		std::regex_replace(picture, std::regex("\""), "\\\"");
-		std::regex_replace(picture, std::regex("'"), "\\x27");
+		std::regex_replace(concatPath, std::regex("\\\\"), "\\\\");
+		std::regex_replace(concatPath, std::regex("\""), "\\\"");
+		std::regex_replace(concatPath, std::regex("'"), "\\x27");
 		command << "qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript 'string:"
 				<< "var allDesktops = desktops();"
 				<< "for (var i = 0, l = allDesktops.length; i < l; ++i) {"
