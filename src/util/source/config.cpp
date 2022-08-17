@@ -27,6 +27,7 @@
 #include <toml++/toml.h>
 #include <argparse/argparse.hpp>
 #include <sstream>
+#include <filesystem>
 
 #define CONF_FILE "../modshot.toml"
 
@@ -34,26 +35,27 @@ Config::Config()
 {
 }
 
-void Config::read(int argc, char *argv[], void (*errorFunc)(const std::string &))
-{
-	SDLRWStream confFile(CONF_FILE, "r");
-
-	if (confFile)
-	{
-		toml::table table;
-		try
-		{
-			table = toml::parse(confFile.stream());
-			Debug() << table;
-		}
-		catch (const toml::parse_error &error)
-		{
-			std::stringstream ss("Config file parsing failed:\n");
-			ss << error;
-			errorFunc(ss.str());
-		}
+#define READ_VALUE_CAST(type, path, location, cast)                        \
+	if (node[#location])                                                   \
+	{                                                                      \
+		if (node[#location].is_##type())                                   \
+			path = (cast)*node[#location].as_##type();                     \
+		else                                                               \
+			Debug() << "Invalid type for" << #path << "expected" << #type; \
 	}
 
+#define READ_BOOL(path, location) READ_VALUE_CAST(boolean, path, location, bool);
+#define READ_INT(path, location) READ_VALUE_CAST(integer, path, location, long int);
+
+void Config::read(int argc, char *argv[], void (*errorFunc)(const std::string &))
+{
+	read_config_file(errorFunc);
+
+	read_arguments(argc, argv, errorFunc);
+}
+
+void Config::read_arguments(int argc, char *argv[], void (*errorFunc)(const std::string &))
+{
 	argparse::ArgumentParser program("modshot", MODSHOT_VERSION);
 
 	program.add_argument("--printFPS", "-pfps")
@@ -75,6 +77,71 @@ void Config::read(int argc, char *argv[], void (*errorFunc)(const std::string &)
 				{ graphics.fixedAspectRatio = true; });
 
 	program.parse_args(argc, argv);
+}
 
-	audio.sourceCount = clamp(audio.sourceCount, 1, 64);
+void Config::read_config_file(void (*errorFunc)(const std::string &))
+{
+		if (std::filesystem::exists(CONF_FILE))
+	{
+		toml::table table;
+		try
+		{
+			table = toml::parse_file(CONF_FILE);
+			if (table["graphics"])
+			{
+				auto node = table["graphics"];
+
+				READ_BOOL(graphics.printFPS, printFPS)
+				READ_BOOL(graphics.fullscreen, fullscreen)
+				READ_BOOL(graphics.fixedAspectRatio, fixedAspectRatio)
+				READ_BOOL(graphics.smoothScaling, smoothScaling)
+				READ_BOOL(graphics.vsync, vsync)
+				READ_BOOL(graphics.subImageFix, subImageFix)
+				READ_BOOL(graphics.enableBlitting, enableBlitting)
+				READ_BOOL(graphics.frameSkip, frameSkip)
+				READ_BOOL(graphics.solidFonts, solidFonts)
+
+				READ_INT(graphics.defScreenW, defScreenW)
+				READ_INT(graphics.defScreenH, defScreenH)
+				READ_INT(graphics.maxTextureSize, maxTextureSize)
+				READ_INT(graphics.fixedFramerate, fixedFramerate)
+			}
+
+			if (table["mjit"])
+			{
+				auto node = table["mjit"];
+
+				READ_BOOL(mjit.enabled, enabled)
+				
+				READ_INT(mjit.verbosity, verbosity)
+				READ_INT(mjit.maxCache, maxCache)
+				READ_INT(mjit.minCalls, minCalls)
+			}
+
+			if (table["yjit"])
+			{
+				auto node = table["yjit"];
+
+				READ_BOOL(yjit.enabled, enabled)
+				READ_BOOL(yjit.greedyVersioning, greedyVersioning)
+
+				READ_INT(yjit.callThreshold, callThreshold)
+				READ_INT(yjit.maxVersions, maxVersion)
+			}
+
+			if (table["audio"])
+			{
+				auto node = table["audio"];
+
+				READ_INT(audio.sourceCount, sourceCount)
+				READ_INT(audio.audioChannels, audioChannels)
+			}
+		}
+		catch (const toml::parse_error &error)
+		{
+			std::stringstream ss("Config file parsing failed:\n");
+			ss << error;
+			errorFunc(ss.str());
+		}
+	}
 }

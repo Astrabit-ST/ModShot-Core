@@ -41,19 +41,19 @@ struct Config
 		bool syncToRefreshrate = false;
 		bool solidFonts = false;
 
-		int defScreenW = 640;
-		int defScreenH = 480;
-		int maxTextureSize = 0;
-		int fixedFramerate = 0;
+		long int defScreenW = 640;
+		long int defScreenH = 480;
+		long int maxTextureSize = 0;
+		long int fixedFramerate = 0;
 	} graphics;
 
 	struct
 	{
 		bool enabled = false;
 
-		int verbosity = 0;
-		int maxCache = 100;
-		int minCalls = 10000;
+		long int verbosity = 0;
+		long int maxCache = 100;
+		long int minCalls = 10000;
 	} mjit;
 
 	struct
@@ -61,14 +61,14 @@ struct Config
 		bool enabled = false;
 		bool greedyVersioning = false;
 
-		int callThreshold = 10;
-		int maxVersions = 4;
+		long int callThreshold = 10;
+		long int maxVersions = 4;
 	} yjit;
 
 	struct
 	{
-		int sourceCount = 64;
-		int audioChannels = 0;
+		long int sourceCount = 64;
+		long int audioChannels = 0;
 	} audio;
 
 	struct
@@ -104,9 +104,9 @@ struct Config
 
 		std::set<std::string> preloadScripts;
 
-		int rgssVersion = 1;
+		long int rgssVersion = 1;
 
-		bool console = false;
+		bool winConsole = false;
 		bool debugMode = false;
 		bool screenMode = false;
 	} game;
@@ -114,6 +114,8 @@ struct Config
 	Config();
 
 	void read(int argc, char *argv[], void (*errorFunc)(const std::string &));
+	void read_config_file(void (*errorFunc)(const std::string &));
+	void read_arguments(int argc, char *argv[], void (*errorFunc)(const std::string &));
 };
 
 #endif // CONFIG_H

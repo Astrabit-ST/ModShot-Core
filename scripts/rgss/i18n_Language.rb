@@ -8,7 +8,7 @@ require "zlib"
 class Language
   FONT_WESTERN = 'Terminus (TTF)'
   FONT_J = 'HigashiOme Gothic regular'
-  LANGUAGES = []
+  LANGUAGES = ['en']
   class << self
     def set(lc)
       dbg_print(lc.lang)
