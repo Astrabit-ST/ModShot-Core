@@ -12,6 +12,7 @@ endif
 global_include_dirs += include_directories('.')
 
 binding_source = [files(
+    'algorithm-binding.cpp',
     'binding-mri.cpp',
     'binding-util.cpp',
     'bitmap-binding.cpp',

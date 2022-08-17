@@ -136,6 +136,7 @@ main_source = files(
 	'rgss/source/etc.cpp',
 	'thread/source/eventthread.cpp',
 	'thread/source/sharedstate.cpp',
+	'util/source/algorithm.cpp',
 	'util/source/config.cpp',
 	'util/source/win-consoleutils.cpp',
 	'main.cpp'

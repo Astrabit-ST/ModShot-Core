@@ -101,6 +101,7 @@ void fmodCoreBindingInit();
 void fmodStudioBindingInit();
 #endif
 void screenBindingInit();
+void algorithmBindingInit();
 RB_METHOD(mriPrint);
 RB_METHOD(mriP);
 RB_METHOD(mkxpDataDirectory);
@@ -144,6 +145,8 @@ static void mriBindingInit()
 	fmodStudioBindingInit();
 	#endif
 	screenBindingInit();
+	algorithmBindingInit();
+	
 	rb_define_global_const("MODSHOT_VERSION", rb_str_new_cstr(MODSHOT_VERSION));
 	if (rgssVer >= 3)
 	{
