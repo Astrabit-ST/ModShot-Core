@@ -32,7 +32,7 @@ struct Config
 	{
 		bool printFPS = false;
 		bool fullscreen = false;
-		bool fixedAspectRatio = false;
+		bool fixedAspectRatio = true;
 		bool smoothScaling = false;
 		bool vsync = true;
 		bool subImageFix = false;

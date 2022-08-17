@@ -23,6 +23,7 @@
 #include "util.h"
 #include "debugwriter.h"
 #include "sdl-util.h"
+#include "version.h"
 #include <toml++/toml.h>
 #include <argparse/argparse.hpp>
 #include <sstream>
@@ -52,6 +53,28 @@ void Config::read(int argc, char *argv[], void (*errorFunc)(const std::string &)
 			errorFunc(ss.str());
 		}
 	}
+
+	argparse::ArgumentParser program("modshot", MODSHOT_VERSION);
+
+	program.add_argument("--printFPS", "-pfps")
+		.help("print fps in the window titlebar")
+		.nargs(0)
+		.action([&](const std::string &value)
+				{ graphics.printFPS = true; });
+
+	program.add_argument("--fullscreen", "-f")
+		.help("start modshot in fullscreen")
+		.nargs(0)
+		.action([&](const std::string &value)
+				{ graphics.fullscreen = true; });
+
+	program.add_argument("--fixedAspectRatio", "-far")
+		.help("force a fixed aspect ratio")
+		.nargs(0)
+		.action([&](const std::string &value)
+				{ graphics.fixedAspectRatio = true; });
+
+	program.parse_args(argc, argv);
 
 	audio.sourceCount = clamp(audio.sourceCount, 1, 64);
 }

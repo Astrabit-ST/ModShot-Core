@@ -1,4 +1,4 @@
 #ifndef MODSHOT_VERSION
-#define MODSHOT_VERSION "setup.sh 1.0.0 beta"
+#define MODSHOT_VERSION "meson-build 1.1"
 #endif
 

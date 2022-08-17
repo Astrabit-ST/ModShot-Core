@@ -131,6 +131,7 @@ int rgssThreadFun(void *userdata)
 	gl.Clear(GL_COLOR_BUFFER_BIT);
 	SDL_GL_SwapWindow(win);
 
+	Debug() << "ModShot version" << MODSHOT_VERSION;
 	printGLInfo();
 
 	bool vsync = conf.graphics.vsync || conf.graphics.syncToRefreshrate;
@@ -259,7 +260,6 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 #else
 int main(int argc, char *argv[]) {
 #endif
-	Debug() << "ModShot version" << MODSHOT_VERSION;
 	SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
 	SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
 	SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, "1");
