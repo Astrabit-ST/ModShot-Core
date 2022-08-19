@@ -41,19 +41,19 @@ struct Config
 		bool syncToRefreshrate = false;
 		bool solidFonts = false;
 
-		long int defScreenW = 640;
-		long int defScreenH = 480;
-		long int maxTextureSize = 0;
-		long int fixedFramerate = 0;
+		int64_t defScreenW = 640;
+		int64_t defScreenH = 480;
+		int64_t maxTextureSize = 0;
+		int64_t fixedFramerate = 0;
 	} graphics;
 
 	struct
 	{
 		bool enabled = false;
 
-		long int verbosity = 0;
-		long int maxCache = 100;
-		long int minCalls = 10000;
+		int64_t verbosity = 0;
+		int64_t maxCache = 100;
+		int64_t minCalls = 10000;
 	} mjit;
 
 	struct
@@ -61,14 +61,14 @@ struct Config
 		bool enabled = false;
 		bool greedyVersioning = false;
 
-		long int callThreshold = 10;
-		long int maxVersions = 4;
+		int64_t callThreshold = 10;
+		int64_t maxVersions = 4;
 	} yjit;
 
 	struct
 	{
-		long int sourceCount = 64;
-		long int audioChannels = 0;
+		int64_t sourceCount = 64;
+		int64_t audioChannels = 0;
 	} audio;
 
 	struct
@@ -104,9 +104,9 @@ struct Config
 
 		std::set<std::string> preloadScripts;
 
-		long int rgssVersion = 1;
+		int64_t rgssVersion = 1;
 
-		bool winConsole = false;
+		bool console = false;
 		bool debugMode = false;
 		bool screenMode = false;
 	} game;

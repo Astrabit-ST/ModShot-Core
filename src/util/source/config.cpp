@@ -45,7 +45,7 @@ Config::Config()
 	}
 
 #define READ_BOOL(path, location) READ_VALUE_CAST(boolean, path, location, bool);
-#define READ_INT(path, location) READ_VALUE_CAST(integer, path, location, long int);
+#define READ_INT(path, location) READ_VALUE_CAST(integer, path, location, int64_t);
 
 void Config::read(int argc, char *argv[], void (*errorFunc)(const std::string &))
 {
@@ -81,7 +81,7 @@ void Config::read_arguments(int argc, char *argv[], void (*errorFunc)(const std:
 
 void Config::read_config_file(void (*errorFunc)(const std::string &))
 {
-		if (std::filesystem::exists(CONF_FILE))
+	if (std::filesystem::exists(CONF_FILE))
 	{
 		toml::table table;
 		try
@@ -112,7 +112,7 @@ void Config::read_config_file(void (*errorFunc)(const std::string &))
 				auto node = table["mjit"];
 
 				READ_BOOL(mjit.enabled, enabled)
-				
+
 				READ_INT(mjit.verbosity, verbosity)
 				READ_INT(mjit.maxCache, maxCache)
 				READ_INT(mjit.minCalls, minCalls)

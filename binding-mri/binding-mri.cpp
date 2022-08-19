@@ -59,11 +59,10 @@ static void mriBindingTerminate();
 static void mriBindingReset();
 
 ScriptBinding scriptBindingImpl =
-{
-	mriBindingExecute,
-	mriBindingTerminate,
-	mriBindingReset
-};
+	{
+		mriBindingExecute,
+		mriBindingTerminate,
+		mriBindingReset};
 
 ScriptBinding *scriptBinding = &scriptBindingImpl;
 
@@ -137,31 +136,31 @@ static void mriBindingInit()
 	oneshotBindingInit();
 	modshotBindingInit();
 	steamBindingInit();
-	#ifndef USE_FMOD
+#ifndef USE_FMOD
 	audioBindingInit();
 	aleffectBindingInit();
-	#else
+#else
 	fmodCoreBindingInit();
 	fmodStudioBindingInit();
-	#endif
+#endif
 	screenBindingInit();
 	algorithmBindingInit();
-	
+
 	rb_define_global_const("MODSHOT_VERSION", rb_str_new_cstr(MODSHOT_VERSION));
 	if (rgssVer >= 3)
 	{
 		_rb_define_module_function(rb_mKernel, "rgss_main", mriRgssMain);
 		_rb_define_module_function(rb_mKernel, "rgss_stop", mriRgssStop);
 
-		_rb_define_module_function(rb_mKernel, "msgbox",    mriPrint);
-		_rb_define_module_function(rb_mKernel, "msgbox_p",  mriP);
+		_rb_define_module_function(rb_mKernel, "msgbox", mriPrint);
+		_rb_define_module_function(rb_mKernel, "msgbox_p", mriP);
 
 		rb_define_global_const("RGSS_VERSION", rb_str_new_cstr("3.0.1"));
 	}
 	else
 	{
 		_rb_define_module_function(rb_mKernel, "print", mriPrint);
-		_rb_define_module_function(rb_mKernel, "p",     mriP);
+		_rb_define_module_function(rb_mKernel, "p", mriP);
 
 		rb_define_alias(rb_singleton_class(rb_mKernel), "_mkxp_kernel_caller_alias", "caller");
 		_rb_define_module_function(rb_mKernel, "caller", _kernelCaller);
@@ -169,9 +168,9 @@ static void mriBindingInit()
 
 	rb_eval_string(module_rpg1);
 
-	#ifdef USE_FMOD
+#ifdef USE_FMOD
 	rb_eval_string(fmod_enums);
-	#endif
+#endif
 
 	VALUE mod = rb_define_module("MKXP");
 	_rb_define_module_function(mod, "data_directory", mkxpDataDirectory);
@@ -196,14 +195,12 @@ static void mriBindingInit()
 	rb_eval_string(
 		"if ENV['SSL_CERT_FILE'].nil?\n"
 		"    ENV['SSL_CERT_FILE'] = './lib/cacert.pem'\n"
-		"end\n"
-	);
+		"end\n");
 
 #ifdef __WIN32
-    if (shState->config().winConsole)
-        configureWindowsStreams();
+	if (shState->config().game.console)
+		configureWindowsStreams();
 #endif
-
 }
 
 static void
@@ -217,7 +214,7 @@ showMsg(const std::string &msg)
 }
 
 static void printP(int argc, VALUE *argv,
-                   const char *convMethod, const char *sep)
+				   const char *convMethod, const char *sep)
 {
 	VALUE dispString = rb_str_buf_new(128);
 	ID conv = rb_intern(convMethod);
@@ -232,8 +229,7 @@ static void printP(int argc, VALUE *argv,
 	}
 
 	shState->oneshot().msgbox(
-		0, RSTRING_PTR(dispString), shState->config().game.title.data()
-	);
+		0, RSTRING_PTR(dispString), shState->config().game.title.data());
 	// showMsg(RSTRING_PTR(dispString));
 }
 
@@ -294,7 +290,8 @@ RB_METHOD(mkxpMouseInWindow)
 	return rb_bool_new(EventThread::mouseState.inWindow);
 }
 
-RB_METHOD(mkxpAllowForceQuit) {
+RB_METHOD(mkxpAllowForceQuit)
+{
 	RB_UNUSED_PARAM;
 	shState->rtData().allowForceQuit.set();
 	return Qnil;
@@ -308,7 +305,7 @@ static VALUE rgssMainCb(VALUE block)
 
 static VALUE rgssMainRescue(VALUE arg, VALUE exc)
 {
-	VALUE *excRet = (VALUE*) arg;
+	VALUE *excRet = (VALUE *)arg;
 
 	*excRet = exc;
 
@@ -318,13 +315,13 @@ static VALUE rgssMainRescue(VALUE arg, VALUE exc)
 static void processReset()
 {
 	shState->graphics().reset();
-	#ifndef USE_FMOD
+#ifndef USE_FMOD
 	shState->audio().reset();
-	#endif
+#endif
 
 	shState->rtData().rqReset.clear();
 	shState->graphics().repaintWait(shState->rtData().rqResetFinish,
-	                                false);
+									false);
 }
 
 RB_METHOD(mriRgssMain)
@@ -336,12 +333,12 @@ RB_METHOD(mriRgssMain)
 		VALUE exc = Qnil;
 
 #if RAPI_FULL < 270
-        rb_rescue2((VALUE(*)(ANYARGS))rgssMainCb, rb_block_proc(),
-                   (VALUE(*)(ANYARGS))rgssMainRescue, (VALUE)&exc, rb_eException,
-                   (VALUE)0);
+		rb_rescue2((VALUE(*)(ANYARGS))rgssMainCb, rb_block_proc(),
+				   (VALUE(*)(ANYARGS))rgssMainRescue, (VALUE)&exc, rb_eException,
+				   (VALUE)0);
 #else
-        rb_rescue2(rgssMainCb, rb_block_proc(), rgssMainRescue, (VALUE)&exc,
-                   rb_eException, (VALUE)0);
+		rb_rescue2(rgssMainCb, rb_block_proc(), rgssMainRescue, (VALUE)&exc,
+				   rb_eException, (VALUE)0);
 #endif
 
 		if (NIL_P(exc))
@@ -392,8 +389,8 @@ RB_METHOD(_kernelCaller)
 		return trace;
 
 	/* RMXP does this, not sure if specific or 1.8 related */
-	VALUE args[] = { rb_str_new_cstr(":in `<main>'"), rb_str_new_cstr("") };
-	rb_funcall2(rb_ary_entry(trace, len-1), rb_intern("gsub!"), 2, args);
+	VALUE args[] = {rb_str_new_cstr(":in `<main>'"), rb_str_new_cstr("")};
+	rb_funcall2(rb_ary_entry(trace, len - 1), rb_intern("gsub!"), 2, args);
 
 	return trace;
 }
@@ -411,14 +408,14 @@ struct evalArg
 
 static VALUE evalHelper(evalArg *arg)
 {
-	VALUE argv[] = { arg->string, Qnil, arg->filename };
+	VALUE argv[] = {arg->string, Qnil, arg->filename};
 	return rb_funcall2(Qnil, rb_intern("eval"), ARRAY_SIZE(argv), argv);
 }
 
 static VALUE evalString(VALUE string, VALUE filename, int *state)
 {
-	evalArg arg = { string, filename };
-	return rb_protect((VALUE (*)(VALUE))evalHelper, (VALUE)&arg, state);
+	evalArg arg = {string, filename};
+	return rb_protect((VALUE(*)(VALUE))evalHelper, (VALUE)&arg, state);
 }
 
 static void runCustomScript(const std::string &filename)
@@ -432,7 +429,7 @@ static void runCustomScript(const std::string &filename)
 	}
 
 	evalString(newStringUTF8(scriptData.c_str(), scriptData.size()),
-	           newStringUTF8(filename.c_str(), filename.size()), NULL);
+			   newStringUTF8(filename.c_str(), filename.size()), NULL);
 }
 
 VALUE kernelLoadDataInt(const char *filename, bool rubyExc);
@@ -499,7 +496,7 @@ static void runRMXPScripts(BacktraceData &btData)
 		if (!RB_TYPE_P(script, RUBY_T_ARRAY))
 			continue;
 
-		VALUE scriptName   = rb_ary_entry(script, 1);
+		VALUE scriptName = rb_ary_entry(script, 1);
 		VALUE scriptString = rb_ary_entry(script, 2);
 
 		int result = Z_OK;
@@ -508,28 +505,28 @@ static void runRMXPScripts(BacktraceData &btData)
 		while (true)
 		{
 			unsigned char *bufferPtr =
-			        reinterpret_cast<unsigned char*>(const_cast<char*>(decodeBuffer.c_str()));
+				reinterpret_cast<unsigned char *>(const_cast<char *>(decodeBuffer.c_str()));
 			const unsigned char *sourcePtr =
-			        reinterpret_cast<const unsigned char*>(RSTRING_PTR(scriptString));
+				reinterpret_cast<const unsigned char *>(RSTRING_PTR(scriptString));
 
 			bufferLen = decodeBuffer.length();
 
 			result = uncompress(bufferPtr, &bufferLen,
-			                    sourcePtr, RSTRING_LEN(scriptString));
+								sourcePtr, RSTRING_LEN(scriptString));
 
 			bufferPtr[bufferLen] = '\0';
 
 			if (result != Z_BUF_ERROR)
 				break;
 
-			decodeBuffer.resize(decodeBuffer.size()*2);
+			decodeBuffer.resize(decodeBuffer.size() * 2);
 		}
 
 		if (result != Z_OK)
 		{
 			static char buffer[256];
 			snprintf(buffer, sizeof(buffer), "Error decoding script %ld: '%s'",
-			         i, RSTRING_PTR(scriptName));
+					 i, RSTRING_PTR(scriptName));
 
 			showMsg(buffer);
 
@@ -554,7 +551,7 @@ static void runRMXPScripts(BacktraceData &btData)
 			VALUE script = rb_ary_entry(scriptArray, i);
 			VALUE scriptDecoded = rb_ary_entry(script, 3);
 			VALUE string = newStringUTF8(RSTRING_PTR(scriptDecoded),
-			                             RSTRING_LEN(scriptDecoded));
+										 RSTRING_LEN(scriptDecoded));
 
 			VALUE fname;
 			const char *scriptName = RSTRING_PTR(rb_ary_entry(script, 1));
@@ -588,7 +585,7 @@ static void showExc(VALUE exc, const BacktraceData &btData)
 	VALUE name = rb_class_path(rb_obj_class(exc));
 
 	VALUE ds = rb_sprintf("%" PRIsVALUE ": %" PRIsVALUE " (%" PRIsVALUE ")",
-	                      bt0, exc, name);
+						  bt0, exc, name);
 	/* omit "useless" last entry (from ruby:1:in `eval') */
 	for (long i = 1, btlen = RARRAY_LEN(bt) - 1; i < btlen; ++i)
 		rb_str_catf(ds, "\n\tfrom %" PRIsVALUE, rb_ary_entry(bt, i));
@@ -616,8 +613,8 @@ static void showExc(VALUE exc, const BacktraceData &btData)
 	 * SectionXXX:YY: in 'blabla' */
 
 	*e = '\0';
-	strncpy(line, *p ? p+1 : p, sizeof(line));
-	line[sizeof(line)-1] = '\0';
+	strncpy(line, *p ? p + 1 : p, sizeof(line));
+	line[sizeof(line) - 1] = '\0';
 	*e = ':';
 	e = p;
 
@@ -634,7 +631,7 @@ static void showExc(VALUE exc, const BacktraceData &btData)
 
 	std::string ms(640, '\0');
 	snprintf(&ms[0], ms.size(), "Script '%s' line %s: %s occured.\n\n%s",
-	         file.c_str(), line, RSTRING_PTR(name), RSTRING_PTR(msg));
+			 file.c_str(), line, RSTRING_PTR(name), RSTRING_PTR(msg));
 
 	showMsg(ms);
 }
@@ -655,8 +652,7 @@ static void mriBindingExecute()
 	// setup ruby library paths
 	rb_eval_string(
 		"$LOAD_PATH.unshift(File.join(Dir.pwd, 'lib', 'ruby'))\n"
-		"$LOAD_PATH.unshift(File.join(Dir.pwd, 'lib', 'ruby', RUBY_PLATFORM))\n"
-	);
+		"$LOAD_PATH.unshift(File.join(Dir.pwd, 'lib', 'ruby', RUBY_PLATFORM))\n");
 
 	// we probably should only be calling this if we are a ruby executable
 	// but we need to initialize things like the prelude (provides important library functions like IO#read_nonblock
@@ -665,41 +661,50 @@ static void mriBindingExecute()
 	// the three arguments are the executable name, and the '-e ""' is to tell ruby to run an empty file
 	// otherwise (since this parses options for the ruby executable) it's gonna wait on stdin for code
 	// --jit enables the jit i think
-	std::vector<const char*> rubyArgsC{"oneshot"};
+	std::vector<const char *> rubyArgsC{"oneshot"};
 	rubyArgsC.push_back("-e ");
 	void *node;
-	if (conf.mjit.enabled) {
-		std::string verboseLevel("--mjit-verbose="); verboseLevel += std::to_string(conf.mjit.verbosity);
-        std::string maxCache("--mjit-max-cache="); maxCache += std::to_string(conf.mjit.maxCache);
-        std::string minCalls("--mjit-min-calls="); minCalls += std::to_string(conf.mjit.minCalls);
-        rubyArgsC.push_back("--mjit");
-        rubyArgsC.push_back(verboseLevel.c_str());
-        rubyArgsC.push_back(maxCache.c_str());
-        rubyArgsC.push_back(minCalls.c_str());
+	if (conf.mjit.enabled)
+	{
+		std::string verboseLevel("--mjit-verbose=");
+		verboseLevel += std::to_string(conf.mjit.verbosity);
+		std::string maxCache("--mjit-max-cache=");
+		maxCache += std::to_string(conf.mjit.maxCache);
+		std::string minCalls("--mjit-min-calls=");
+		minCalls += std::to_string(conf.mjit.minCalls);
+		rubyArgsC.push_back("--mjit");
+		rubyArgsC.push_back(verboseLevel.c_str());
+		rubyArgsC.push_back(maxCache.c_str());
+		rubyArgsC.push_back(minCalls.c_str());
 	}
 
-	if (conf.yjit.enabled) {
-		std::string callThreshold("--yjit-call-threshold="); callThreshold += std::to_string(conf.yjit.callThreshold);
-		std::string maxVersions("--yjit-max-versions="); maxVersions += std::to_string(conf.yjit.maxVersions);
-		std::string greedyVersioning("--yjit-greedy-versioning"); greedyVersioning += std::to_string(conf.yjit.greedyVersioning);
+	if (conf.yjit.enabled)
+	{
+		std::string callThreshold("--yjit-call-threshold=");
+		callThreshold += std::to_string(conf.yjit.callThreshold);
+		std::string maxVersions("--yjit-max-versions=");
+		maxVersions += std::to_string(conf.yjit.maxVersions);
+		std::string greedyVersioning("--yjit-greedy-versioning");
+		greedyVersioning += std::to_string(conf.yjit.greedyVersioning);
 		rubyArgsC.push_back("--yjit");
 		rubyArgsC.push_back(callThreshold.c_str());
 		rubyArgsC.push_back(maxVersions.c_str());
 		rubyArgsC.push_back(greedyVersioning.c_str());
 	}
 
-	node = ruby_options(rubyArgsC.size(), const_cast<char**>(rubyArgsC.data()));
+	node = ruby_options(rubyArgsC.size(), const_cast<char **>(rubyArgsC.data()));
 
-    int state;
-    bool valid = ruby_executable_node(node, &state);
-    if (valid)
-        state = ruby_exec_node(node);
-    if (state || !valid) {
-        showMsg("An error occurred while initializing Ruby. (Invalid JIT settings?)");
-        ruby_cleanup(state);
-        shState->rtData().rqTermAck.set();
-        return;
-    }
+	int state;
+	bool valid = ruby_executable_node(node, &state);
+	if (valid)
+		state = ruby_exec_node(node);
+	if (state || !valid)
+	{
+		showMsg("An error occurred while initializing Ruby. (Invalid JIT settings?)");
+		ruby_cleanup(state);
+		shState->rtData().rqTermAck.set();
+		return;
+	}
 
 	rb_enc_set_default_external(rb_enc_from_encoding(rb_utf8_encoding()));
 

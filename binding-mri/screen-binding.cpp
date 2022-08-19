@@ -16,7 +16,7 @@ static void start()
 #if defined _WIN32
 	WCHAR path[MAX_PATH];
 	WCHAR gameFolder[MAX_PATH];
-	MultiByteToWideChar(CP_UTF8, 0, shState->config().gameFolder.c_str(), -1, gameFolder, MAX_PATH);
+	MultiByteToWideChar(CP_UTF8, 0, shState->config().game.folder.c_str(), -1, gameFolder, MAX_PATH);
 	GetModuleFileNameW(NULL, path, MAX_PATH);
 	STARTUPINFOW si;
 	memset(&si, 0, sizeof(si));
@@ -26,7 +26,7 @@ static void start()
 	WCHAR *args = new WCHAR[argString.size() + 1];
 	memcpy(args, argString.c_str(), (argString.size() + 1) * sizeof(WCHAR));
 	CreateProcessW(path, args, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-	delete [] args;
+	delete[] args;
 #else
 #if defined __linux
 	char path[PATH_MAX];
@@ -38,10 +38,11 @@ static void start()
 #endif
 
 	pid_t pid = fork();
-	if (pid == 0) {
+	if (pid == 0)
+	{
 		execl(exename.c_str(), "oneshot",
-		      (std::string("--gameFolder=") + shState->config().game.folder).c_str(),
-		      "--screenMode=true", NULL);
+			  (std::string("--gameFolder=") + shState->config().game.folder).c_str(),
+			  "--screenMode=true", NULL);
 		exit(1);
 	}
 #endif
@@ -77,8 +78,8 @@ RB_METHOD(screenSet)
 
 void screenBindingInit()
 {
-    VALUE module = rb_define_module("Screen");
-    _rb_define_module_function(module, "start", screenStart);
-    _rb_define_module_function(module, "finish", screenFinish);
+	VALUE module = rb_define_module("Screen");
+	_rb_define_module_function(module, "start", screenStart);
+	_rb_define_module_function(module, "finish", screenFinish);
 	_rb_define_module_function(module, "set", screenSet);
 }
