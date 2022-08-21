@@ -323,19 +323,24 @@ int main(int argc, char *argv[])
 
 #ifdef __WIN32
 	// Create a debug console in debug mode
-	if (conf.game.console)
+	if (!conf.game.console)
 	{
-		if (setupWindowsConsole())
-		{
+		/*if(!AttachConsole(ATTACH_PARENT_PROCESS)) {
+			if (setupWindowsConsole())
+			{
+				reopenWindowsStreams();
+			}
+			else
+			{
+				char buf[200];
+				snprintf(buf, sizeof(buf), "Error allocating console: %lu",
+						 GetLastError());
+				showInitError(std::string(buf));
+			}	
+		} else {
 			reopenWindowsStreams();
-		}
-		else
-		{
-			char buf[200];
-			snprintf(buf, sizeof(buf), "Error allocating console: %lu",
-					 GetLastError());
-			showInitError(std::string(buf));
-		}
+		}*/
+		FreeConsole();
 	}
 #endif
 

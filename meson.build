@@ -120,6 +120,7 @@ if host_system == 'windows'
     subdir('windows')
     global_sources += windows_resources
     global_include_dirs += include_directories('windows')
+    global_include_dirs += include_directories('windows/build-ucrt64/include')
 else
     subdir('linux')
     rpath = '$ORIGIN'
@@ -138,7 +139,7 @@ executable(
     cpp_args: global_args,
     objc_args: global_args,
     objcpp_args: global_args,
-    win_subsystem: 'windows',
+    win_subsystem: 'console',
     install: (host_system != 'windows')
 )
 
