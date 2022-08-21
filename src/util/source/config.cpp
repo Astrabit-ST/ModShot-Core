@@ -136,6 +136,17 @@ void Config::read_config_file(void (*errorFunc)(const std::string &))
 				READ_INT(audio.sourceCount, sourceCount)
 				READ_INT(audio.audioChannels, audioChannels)
 			}
+
+			if(table["game"])
+			{
+				auto node = table["game"];
+
+				READ_INT(game.rgssVersion, rgssVersion)
+
+				READ_BOOL(game.console, console)
+				READ_BOOL(game.debugMode, debugMode)
+				READ_BOOL(game.screenMode, screenMode)
+			}
 		}
 		catch (const toml::parse_error &error)
 		{
