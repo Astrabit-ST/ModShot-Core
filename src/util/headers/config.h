@@ -80,6 +80,7 @@ struct Config
 		std::string customDataPath;
 		std::string commonDataPath = "OneShot";
 		std::string iconPath = "";
+		std::string exeName = "modshot";
 
 		bool useScriptNames;
 		bool allowSymlinks = false;
@@ -114,6 +115,7 @@ struct Config
 		bool enabled = false;
 		bool titlebar = false;
 		std::string name = "The Journal";
+		std::string imagePath = "./Graphics/Journal/";
 	} screen_mode;
 
 	Config();

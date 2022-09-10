@@ -24,10 +24,21 @@
 #include "debugwriter.h"
 #include "sdl-util.h"
 #include "version.h"
+#include <physfs.h>
 #include <toml++/toml.h>
 #include <argparse/argparse.hpp>
 #include <sstream>
 #include <filesystem>
+
+static std::string prefPath(const char *org, const char *app)
+{
+	const char *path = PHYSFS_getPrefDir(org, app);
+
+	if (!path)
+		return std::string();
+
+	return path;
+}
 
 #define CONF_FILE "../modshot.toml"
 
@@ -52,6 +63,8 @@ void Config::read(int argc, char *argv[], void (*errorFunc)(const std::string &)
 	read_config_file(errorFunc);
 
 	read_arguments(argc, argv, errorFunc);
+
+	paths.commonDataPath = prefPath(".", paths.commonDataPath.c_str());
 }
 
 void Config::read_arguments(int argc, char *argv[], void (*errorFunc)(const std::string &))
@@ -91,13 +104,31 @@ void Config::read_arguments(int argc, char *argv[], void (*errorFunc)(const std:
 	program.add_argument("--screenName", "-sn")
 		.help("screen mode window name")
 		.nargs(1)
-		.default_value("The Journal");
+		.action([&](const std::string &value)
+				{ screen_mode.name = value; });
 
-	program.parse_args(argc, argv);
+	program.add_argument("--screenFolder", "-sf")
+		.help("screen mode folder path")
+		.nargs(1)
+		.action([&](const std::string &value)
+				{ screen_mode.imagePath = value; });
 
-	if (program.is_used("--screenMode"))
+	program.add_argument("--gameFolder", "-gf")
+		.help("game folder path")
+		.nargs(1)
+		.default_value("..")
+		.action([&](const std::string &value)
+				{ game.folder = value; });
+
+	try
 	{
-		screen_mode.name = program.get<std::string>("--screenMode");
+		program.parse_args(argc, argv);
+	}
+	catch (const std::exception &e)
+	{
+		std::cerr << e.what() << '\n';
+		std::cerr << program;
+		std::exit(1);
 	}
 }
 
