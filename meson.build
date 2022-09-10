@@ -120,7 +120,6 @@ if host_system == 'windows'
     subdir('windows')
     global_sources += windows_resources
     global_include_dirs += include_directories('windows')
-    global_include_dirs += include_directories('windows/build-ucrt64/include')
 else
     subdir('linux')
     rpath = '$ORIGIN'

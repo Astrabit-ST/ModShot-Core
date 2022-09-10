@@ -4,6 +4,11 @@
 #  After defining each class, actual processing begins here.
 #==============================================================================
 
+require "benchmark"
+
+puts Benchmark.measure { 1000.times { Algorithm.rectangle_distance(0.0, 0.0, 1.0, 1.0, 1.0, 2.0) } }
+puts Benchmark.measure { 1000.times { dx = [0.0, 0.0 - 1.0 - (1.0 / 2.0)].max; dy = [0.0, 0.0 - 1.0 - (2.0 / 2.0)].max; Math.sqrt(dx * dx + dy * dy) - 1.0 } }
+
 at_exit do
   Wallpaper.reset
   save unless $game_switches[99] || ($game_system.map_interpreter.running? || !$scene.is_a?(Scene_Map))

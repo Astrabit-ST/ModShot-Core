@@ -108,8 +108,13 @@ struct Config
 
 		bool console = false;
 		bool debugMode = false;
-		bool screenMode = false;
 	} game;
+
+	struct {
+		bool enabled = false;
+		bool titlebar = false;
+		std::string name = "The Journal";
+	} screen_mode;
 
 	Config();
 

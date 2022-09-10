@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
 #endif
 
 	extern int screenMain(Config & conf);
-	if (conf.game.screenMode)
+	if (conf.screen_mode.enabled)
 		return screenMain(conf);
 
 	if (conf.game.windowTitle.empty())

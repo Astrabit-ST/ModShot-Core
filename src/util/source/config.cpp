@@ -76,7 +76,29 @@ void Config::read_arguments(int argc, char *argv[], void (*errorFunc)(const std:
 		.action([&](const std::string &value)
 				{ graphics.fixedAspectRatio = true; });
 
+	program.add_argument("--screenMode", "-sm")
+		.help("launch with screen mode")
+		.nargs(0)
+		.action([&](const std::string &value)
+				{ screen_mode.enabled = true; });
+
+	program.add_argument("--screenTitlebar", "-stb")
+		.help("enable the screen mode titlebar")
+		.nargs(0)
+		.action([&](const std::string &value)
+				{ screen_mode.titlebar = true; });
+
+	program.add_argument("--screenName", "-sn")
+		.help("screen mode window name")
+		.nargs(1)
+		.default_value("The Journal");
+
 	program.parse_args(argc, argv);
+
+	if (program.is_used("--screenMode"))
+	{
+		screen_mode.name = program.get<std::string>("--screenMode");
+	}
 }
 
 void Config::read_config_file(void (*errorFunc)(const std::string &))
@@ -137,7 +159,7 @@ void Config::read_config_file(void (*errorFunc)(const std::string &))
 				READ_INT(audio.audioChannels, audioChannels)
 			}
 
-			if(table["game"])
+			if (table["game"])
 			{
 				auto node = table["game"];
 
@@ -145,7 +167,6 @@ void Config::read_config_file(void (*errorFunc)(const std::string &))
 
 				READ_BOOL(game.console, console)
 				READ_BOOL(game.debugMode, debugMode)
-				READ_BOOL(game.screenMode, screenMode)
 			}
 		}
 		catch (const toml::parse_error &error)
