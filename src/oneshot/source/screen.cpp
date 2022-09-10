@@ -38,7 +38,7 @@ int screenMain(Config &conf)
 {
 	const SDL_Color black = {0x00, 0x00, 0x00, 0xFF};
 
-	Pipe ipc("oneshot-pipe", Pipe::Read);
+	Pipe ipc(conf.screen_mode.name.c_str(), Pipe::Read);
 
 	int imgFlags = IMG_INIT_PNG;
 	if (IMG_Init(imgFlags) != imgFlags)
@@ -103,7 +103,6 @@ int screenMain(Config &conf)
 				int x = stoi(str.substr(3, delimiter - 3));
 				int y = stoi(str.substr(delimiter + 1, str.length()));
 				SDL_SetWindowPosition(win, x, y);
-				Debug() << "x" << x << "y" << y;
 				continue;
 			}
 
