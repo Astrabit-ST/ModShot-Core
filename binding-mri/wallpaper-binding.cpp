@@ -48,7 +48,7 @@
 		static std::vector<int> defColorStyles, defPictureStyles;
 		static std::vector<bool> defColorExists;
 		static std::vector<std::string> defPictureURIs;
-		static GValue defColor = G_VALUE_INIT;
+		static std::vector<GdkRGBA> defColorValues = {};
 		static std::vector<std::string> optionImages, optionColors, optionImageStyles, optionColorStyles;
 		static std::vector<std::string> monitors;
 		// KDE settings
@@ -99,13 +99,13 @@
 				bgchannel = xfconf_channel_get("xfce4-desktop");
 
 				std::string optionImage = "last-image";
-				std::string optionColor = "color1";
+				std::string optionColor = "rgba1";
 				std::string optionImageStyle = "image-style";
 				std::string optionColorStyle = "color-style";
 				std::string optionFirstPart = "/backdrop/screen0/monitor";
 		                std::string optionLastPart = "/workspace0/";
 
-				for (int i = 0; i < numberOfDisplays; i++)
+				for (int i = 0; i < monitors.size(); i++)
 				{
 					optionImages.push_back(optionFirstPart + monitors.at(i) + optionLastPart + optionImage);
 					defPictureURIs.push_back(xfconf_channel_get_string(bgchannel, 
@@ -116,12 +116,20 @@
 									 		  optionImageStyles.back().c_str(), -1));
 
 					optionColors.push_back(optionFirstPart + monitors.at(i) + optionLastPart + optionColor);
-					defColorExists.push_back(xfconf_channel_get_property(bgchannel, 
-										     	     optionColors.back().c_str(), &defColor));
+
+					defColorValues.push_back({ });
+					defColorExists.push_back(xfconf_channel_get_array(bgchannel, 
+										     	  optionColors.back().c_str(),
+											  G_TYPE_DOUBLE, &defColorValues.back().red,
+											  G_TYPE_DOUBLE, &defColorValues.back().green, 
+											  G_TYPE_DOUBLE, &defColorValues.back().blue,
+											  G_TYPE_DOUBLE, &defColorValues.back().alpha,
+											  G_TYPE_INVALID));
+
 
 					optionColorStyles.push_back(optionFirstPart + monitors.at(i) + optionLastPart + optionColorStyle);
-					defColorStyles.at(i) = xfconf_channel_get_int(bgchannel, 
-										      optionColorStyles.back().c_str(), -1);
+					defColorStyles.push_back(xfconf_channel_get_int(bgchannel, 
+										        optionColorStyles.back().c_str(), -1));
 				}
 			} else {
 				// Configuration failed to initialize, we won't set the wallpaper
@@ -312,56 +320,30 @@ end:
 				g_settings_set_string(bgsetting, "picture-filename", (gameDirStr + path).c_str());
 			}
 		} else if (desktop == "xfce") {
+			std::string concatPath(gameDirStr + path);
+			
 			int r = (color >> 16) & 0xFF;
 			int g = (color >> 8) & 0xFF;
 			int b = color & 0xFF;
-			unsigned int ur = r * 256 + r;
-			unsigned int ug = g * 256 + g;
-			unsigned int ub = b * 256 + b;
-			unsigned int alpha = 65535;
-			std::string concatPath(gameDirStr + path);
+			double dr = (r * 256 + r) / 65535.0;
+			double dg = (g * 256 + g) / 65535.0;
+			double db = (b * 256 + b) / 65535.0;
+			double alpha = 1;
+
 
 			for (int i = 0; i < monitors.size(); i++)
 			{
 				xfconf_channel_set_string(bgchannel, optionImages.at(i).c_str(), concatPath.c_str());
 				xfconf_channel_set_int(bgchannel, optionColorStyles.at(i).c_str(), 0);
 				xfconf_channel_set_int(bgchannel, optionImageStyles.at(i).c_str(), 4);
-				GValue colorValue = G_VALUE_INIT;
-				GPtrArray *colorArr = g_ptr_array_sized_new(4);
-				GType colorArrType = g_type_from_name("GPtrArray_GValue_");
-				if (!colorArrType) {
-					std::stringstream colorCommand;
-					colorCommand << "xfconf-query -c xfce4-desktop -n -p " << optionColors.at(i)
-								 << " -t uint -t uint -t uint -t uint -s " << ub
-								 << " -s " << ug << " -s " << ub << " -s " << alpha;
-					int colorCommandRes = system(colorCommand.str().c_str());
-					defColorExists.at(i) = xfconf_channel_get_property(bgchannel, optionColors.at(i).c_str(), &defColor);
-					colorArrType = g_type_from_name("GPtrArray_GValue_");
-					if (!colorArrType) {
-						// Let's do some debug output here and skip changing the color
-						Debug() << "WALLPAPER ERROR: xfconf-query call returned" << colorCommandRes;
-						return Qnil;
-					}
-				}
-				g_value_init(&colorValue, colorArrType);
-				GValue *vr = g_new0(GValue, 1);
-				GValue *vg = g_new0(GValue, 1);
-				GValue *vb = g_new0(GValue, 1);
-				GValue *va = g_new0(GValue, 1);
-				g_value_init(vr, G_TYPE_UINT);
-				g_value_init(vg, G_TYPE_UINT);
-				g_value_init(vb, G_TYPE_UINT);
-				g_value_init(va, G_TYPE_UINT);
-				g_value_set_uint(vr, ur);
-				g_value_set_uint(vg, ug);
-				g_value_set_uint(vb, ub);
-				g_value_set_uint(va, alpha);
-				g_ptr_array_add(colorArr, vr);
-				g_ptr_array_add(colorArr, vg);
-				g_ptr_array_add(colorArr, vb);
-				g_ptr_array_add(colorArr, va);
-				g_value_set_boxed(&colorValue, colorArr);
-				xfconf_channel_set_property(bgchannel, optionColors.at(i).c_str(), &colorValue);
+
+				xfconf_channel_set_array(bgchannel, 
+						  	 optionColors.at(i).c_str(),
+						 	 G_TYPE_DOUBLE, &dr,
+						 	 G_TYPE_DOUBLE, &dg, 
+							 G_TYPE_DOUBLE, &db,
+							 G_TYPE_DOUBLE, &alpha,
+							 G_TYPE_INVALID);
 			}
 		} else if (desktop == "kde") {
 			std::stringstream command;
@@ -446,7 +428,13 @@ RB_METHOD(wallpaperReset)
 			for (int i = 0; i < monitors.size(); i++)
 			{
 				if (defColorExists.at(i)) {
-					xfconf_channel_set_property(bgchannel, optionColors.at(i).c_str(), &defColor);
+					xfconf_channel_set_array(bgchannel, 
+							    	 optionColors.at(i).c_str(),
+								 G_TYPE_DOUBLE, &defColorValues.at(i).red,
+								 G_TYPE_DOUBLE, &defColorValues.at(i).green, 
+								 G_TYPE_DOUBLE, &defColorValues.at(i).blue,
+								 G_TYPE_DOUBLE, &defColorValues.at(i).alpha,
+								 G_TYPE_INVALID);
 				} else {
 					xfconf_channel_reset_property(bgchannel, optionColors.at(i).c_str(), false);
 				}
