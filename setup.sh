@@ -13,7 +13,7 @@ if [[ $OSTYPE == msys ]]; then
     libvorbis:p libogg:p zeromq:p libsigc++:p boost:p libpng:p \
     libjpeg-turbo:p libtiff:p harfbuzz:p --needed --noconfirm
 else 
-    if [[ "$(cat /etc/issue)" == Debian* || "$(cat /etc/issue)" == Ubuntu* ]];
+    if [[ "$(cat /etc/os-release)" == *debian* || "$(cat /etc/os-release)" == *ubuntu* ]];
     then
         echo " * Debian Linux detected"
         echo " * Installing dependencies..."
@@ -25,9 +25,9 @@ else
         libfreetype-dev libharfbuzz-dev
     fi
 
-    if [[ "$(cat /etc/issue)" == Manjaro* ]];
+    if [[ "$(cat /etc/os-release)" == *arch* ]];
     then
-        echo " * Manjaro detected"
+        echo " * Arch detected"
         echo " * Installing dependencies..."
         sudo pacman -S --noconfirm --needed vim gcc make cmake ruby bison \
         doxygen sdl2 openal pixman libwebp bzip2 libvorbis libogg libsodium \
@@ -37,7 +37,7 @@ else
         libsigc++ sdl_sound m4 meson freetype harfbuzz --no-confirm
     fi
 
-    if [[ $(cat /etc/redhat-release) ]];
+    if [ -f /etc/redhat-release ];
     then
         echo " * RedHat/Fedora Linux detected"
         echo " * Installing dependencies..."
