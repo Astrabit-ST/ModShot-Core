@@ -7,7 +7,7 @@ Otherwise, install these packages manually:
 - Arch&nbsp; — &nbsp;`make cmake ruby bison doxygen sdl2 openal pixman libwebp bzip2 libvorbis libogg libsodium libpng libjpeg libtiff zeromq mm-common base-devel gtk3`
 - RedHat&nbsp; — &nbsp;`make cmake m4 bison doxygen ruby meson mm-common SDL2 SDL2-devel SDL2_image SDL2_tff SDL2_ttf-devel SDL2_image-devel bzip2-devel libwebp libwebp-devel libvorbis libvorbis-devel libpng libpng-devel libjpeg-turbo libjpeg-turbo-devel libogg libogg-devel libtiff libtiff-devel libsodium libsodium-devel zeromq zeromq-devel physfs physfs-devel pixman pixman-devel bzip2 openal-soft speex speex-devel libmodplug libmodplug-devel boost boost-devel openal-soft-devel xfconf xfconf-devel gtk3 gtk3-devel libsigc++-devel harfbuzz-devel`
 
-> ❗&nbsp; You will also need to install a C compiler alongside those packages. I recommend using Clang (`clang` in all distributions) as it compiles faster and has no known issues with ModShot. If you don't want to use Clang, install GCC (`gcc` in all distributions).
+> ❗&nbsp; You will also need to install a C/C++ compiler alongside those packages (`clang` for Clang, `gcc` for GCC)
 
 
 ### Installing packages for `_______`
