@@ -1,3 +1,34 @@
+# Why is this archived?
+
+ModShot is a mess. Really! If you go back in the git history, you'll see that a lot of lines of code originate from this commit: [0954cfd039e1de59a0cb84cac611c398e2d02a21](https://github.com/Astrabit-ST/ModShot-Core/commit/0954cfd039e1de59a0cb84cac611c398e2d02a21)
+
+Why?
+
+¯\\\_(ツ)\_/¯
+
+This is not the worst example I could point out by the way! There's so so many others but theyr equire an understanding of C++.
+The whole codebase is like this, ModShot is an unstable mess- nevermind that mkxp was already really unstable!
+
+Speaking as Lily, ModShot's main contributor, I no longer have the willpower to maintain this dumpster fire. 
+It was genuinely contributing to my depression last year. If you knew me around June-December of 2022, you'd know that I was borderline suicidal at times. 
+Yeah, it was that bad. In the interest of my mental health, I gave up working on ModShot, and it's been left here to sit and rot.
+
+I'll be honest, ModShot is really not my project. A *lot* of the stuff here was made by @rkevin-arch. 
+Back when this started to be a thing, I knew *nothing* about C++, or Ruby for that matter.
+Only a few months earlier, I had actually gotten a book about learning to code in Python, because I really did not know anything.
+
+rkevin basically carried the repo from a fork of mkxp-oneshot to what it is now, adding most of the features (such as ruby gem support and audio channels) that we take for granted.
+The only contribution I've really made was overhauling the build system, and even then, that was not a super big change.
+
+I've thrown this whole codebase, all of rkevin's work really- into the dumpster, and that's not right.
+
+So, I'll be leaving this as the last commit on the repo. A credit to rkevin, the guy who you should really be crediting for creating ModShot!
+
+If you want an alternative, please take a look at @thehatkid's mkp-z fork: [ModShot-mkxp-z](https://github.com/thehatkid/ModShot-mkxp-z)
+
+On a more positive note, me and @somedevfox have been working on a rust rewrite on and off for a while now, 
+and we'll be devoting our time to getting up to feature parity with ModShot in the near future, so keep your eyes peeled!
+
 # ModShot-Core
 
 [![ModShot CI](https://github.com/Astrabit-ST/ModShot-Core/actions/workflows/ci.yml/badge.svg)](https://github.com/Astrabit-ST/ModShot-Core/actions/workflows/ci.yml)
