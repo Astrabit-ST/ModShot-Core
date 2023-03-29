@@ -78,9 +78,6 @@ struct SharedState
 	Input &input() const;
 	#ifndef USE_FMOD
 	Audio &audio() const;
-	#else
-	//FMOD_STUDIO_SYSTEM* studio_system() const;
-	//FMOD_SYSTEM* core_system() const;
 	#endif
 
 	Oneshot &oneshot() const;

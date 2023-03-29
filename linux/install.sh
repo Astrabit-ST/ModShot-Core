@@ -12,7 +12,7 @@ SO_PROCESSED=""
 
 function fail() {
     echo "$1"
-    echo "Please beat the crap out of rkevin until he fixes this issue."
+    echo "Please beat the crap out of Lily until she fixes this issue."
     exit 1
 }
 
@@ -45,9 +45,7 @@ mkdir -p $DESTDIR
 copy_dependencies $BINARY $BINARY
 
 echo "Copying standard library..."
-cp -ar "$RUBY_LIB_DIR/$RUBY_VER.0" "$DESTDIR/ruby"
+cp -ar "$RUBY_LIB_DIR/$RUBY_VER.0/*" "$DESTDIR/ruby"
 echo "Downloading cacert.pem..."
 curl -o "$DESTDIR/cacert.pem" https://curl.se/ca/cacert.pem
-echo "Sym-linking modshot..."
-ln -sf "$DESTDIR/lmodshot" $BINARY
 echo "Done!"

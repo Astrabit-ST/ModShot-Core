@@ -77,8 +77,8 @@ struct AudioPrivate
 	      bgs(ALStream::Looped, "bgs"),
 	      me(ALStream::NotLooped, "me"),
 	      se(rtData.config),
-		  lch(ALStream::Looped, "lch", rtData.config.audioChannels),
-		  ch(ALStream::NotLooped, "ch", rtData.config.audioChannels),
+		  lch(ALStream::Looped, "lch", rtData.config.audio.audioChannels),
+		  ch(ALStream::NotLooped, "ch", rtData.config.audio.audioChannels),
 	      syncPoint(rtData.syncPoint)
 	{
 		bgm_volume = 100;

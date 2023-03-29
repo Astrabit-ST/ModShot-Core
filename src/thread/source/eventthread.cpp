@@ -51,17 +51,17 @@
 #include <iostream>
 
 #ifdef _WIN32
-	#include <windows.h>
-	#include <SDL2/SDL_syswm.h>
+#include <windows.h>
+#include <SDL2/SDL_syswm.h>
 #endif
 
 #define KEYCODE_TO_SCUFFEDCODE(keycode) (((keycode & 0xff) | ((keycode & 0x180) == 0x100 ? 0x180 : 0)) + SDL_NUM_SCANCODES)
 
 #ifndef USE_FMOD
-typedef void (ALC_APIENTRY *LPALCDEVICEPAUSESOFT) (ALCdevice *device);
-typedef void (ALC_APIENTRY *LPALCDEVICERESUMESOFT) (ALCdevice *device);
+typedef void(ALC_APIENTRY *LPALCDEVICEPAUSESOFT)(ALCdevice *device);
+typedef void(ALC_APIENTRY *LPALCDEVICERESUMESOFT)(ALCdevice *device);
 
-#define AL_DEVICE_PAUSE_FUN \
+#define AL_DEVICE_PAUSE_FUN                   \
 	AL_FUN(DevicePause, LPALCDEVICEPAUSESOFT) \
 	AL_FUN(DeviceResume, LPALCDEVICERESUMESOFT)
 
@@ -80,7 +80,7 @@ initALCFunctions(ALCdevice *alcDev)
 
 	Debug() << "ALC_SOFT_pause_device present";
 
-#define AL_FUN(name, type) alc. name = (type) alcGetProcAddress(alcDev, "alc" #name "SOFT");
+#define AL_FUN(name, type) alc.name = (type)alcGetProcAddress(alcDev, "alc" #name "SOFT");
 	AL_DEVICE_PAUSE_FUN;
 #undef AL_FUN
 }
@@ -117,16 +117,17 @@ bool EventThread::allocUserEvents()
 {
 	usrIdStart = SDL_RegisterEvents(EVENT_COUNT);
 
-	if (usrIdStart == (uint32_t) -1)
+	if (usrIdStart == (uint32_t)-1)
 		return false;
 
 	return true;
 }
 
 EventThread::EventThread()
-    : fullscreen(false),
-      showCursor(true)
-{}
+	: fullscreen(false),
+	  showCursor(true)
+{
+}
 
 void EventThread::process(RGSSThreadData &rtData)
 {
@@ -135,51 +136,55 @@ void EventThread::process(RGSSThreadData &rtData)
 	UnidirMessage<Vec2i> &windowSizeMsg = rtData.windowSizeMsg;
 
 #ifdef _WIN32
-    // receive SDL WM events
-    SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+	// receive SDL WM events
+	SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
 #endif
 
-	#ifndef USE_FMOD
+#ifndef USE_FMOD
 	initALCFunctions(rtData.alcDev);
-	#endif
+#endif
 
-	// XXX this function breaks input focus on OSX
-	#ifndef __APPLE__
-		SDL_SetEventFilter(eventFilter, &rtData);
-	#endif
+// XXX this function breaks input focus on OSX
+#ifndef __APPLE__
+	SDL_SetEventFilter(eventFilter, &rtData);
+#endif
 
-	fullscreen = rtData.config.fullscreen;
+	fullscreen = rtData.config.graphics.fullscreen;
 
 	fps.lastFrame = SDL_GetPerformanceCounter();
 	fps.displayCounter = 0;
 	fps.acc = 0;
 	fps.accDiv = 0;
 
-	if (rtData.config.printFPS)
+	if (rtData.config.graphics.printFPS)
 		fps.sendUpdates.set();
 
 	bool displayingFPS = false;
 
 	bool cursorInWindow = false;
 	/* Will be updated eventually */
-	SDL_Rect gameScreen = { 0, 0, 0, 0 };
+	SDL_Rect gameScreen = {0, 0, 0, 0};
 
 	/* SDL doesn't send an initial FOCUS_GAINED event */
 	bool windowFocused = true;
 
 	bool terminate = false;
 
-	std::map<int, SDL_GameController*> controllers;
-	std::map<int, SDL_Joystick*> joysticks;
+	std::map<int, SDL_GameController *> controllers;
+	std::map<int, SDL_Joystick *> joysticks;
 
-	for (int i = 0; i < SDL_NumJoysticks(); ++i) {
-		if (SDL_IsGameController(i)) {
-			//Load as game controller
+	for (int i = 0; i < SDL_NumJoysticks(); ++i)
+	{
+		if (SDL_IsGameController(i))
+		{
+			// Load as game controller
 			SDL_GameController *gc = SDL_GameControllerOpen(i);
 			int id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(gc));
 			controllers[id] = gc;
-		} else {
-			//Fall back to joystick
+		}
+		else
+		{
+			// Fall back to joystick
 			SDL_Joystick *js = SDL_JoystickOpen(i);
 			joysticks[SDL_JoystickInstanceID(js)] = js;
 		}
@@ -197,8 +202,8 @@ void EventThread::process(RGSSThreadData &rtData)
 	SDL_Joystick *js;
 	SDL_GameController *gc;
 	int id;
-	std::map<int, SDL_Joystick*>::iterator jsit;
-	std::map<int, SDL_GameController*>::iterator gcit;
+	std::map<int, SDL_Joystick *>::iterator jsit;
+	std::map<int, SDL_GameController *>::iterator gcit;
 
 	SDL_GetWindowSize(win, &winW, &winH); // SDL_GL_GetDrawableSize(win, &winW, &winH);
 
@@ -206,16 +211,21 @@ void EventThread::process(RGSSThreadData &rtData)
 
 	while (true)
 	{
-		#ifdef _WIN32
+#ifdef _WIN32
 		SDL_WaitEvent(&event);
-		#elif __linux__
+#elif __linux__
 		if (!SDL_WaitEvent(&event))
 		{
-			Debug() << "EventThread: Event error";
-			Debug() << SDL_GetError();
-			break;
+			const char *error = SDL_GetError();
+			// Was there *actually* an error?
+			if (!strcmp(error, "\n"))
+			{
+				Debug() << "EventThread: Event error";
+				Debug() << SDL_GetError();
+				break;
+			}
 		}
-		#endif
+#endif
 
 		if (sMenu && sMenu->onEvent(event, joysticks))
 		{
@@ -233,16 +243,16 @@ void EventThread::process(RGSSThreadData &rtData)
 		/* Preselect and discard unwanted events here */
 		switch (event.type)
 		{
-		case SDL_MOUSEBUTTONDOWN :
-		case SDL_MOUSEBUTTONUP :
-		case SDL_MOUSEMOTION :
+		case SDL_MOUSEBUTTONDOWN:
+		case SDL_MOUSEBUTTONUP:
+		case SDL_MOUSEMOTION:
 			if (event.button.which == SDL_TOUCH_MOUSEID)
 				continue;
 			break;
 
-		case SDL_FINGERDOWN :
-		case SDL_FINGERUP :
-		case SDL_FINGERMOTION :
+		case SDL_FINGERDOWN:
+		case SDL_FINGERUP:
+		case SDL_FINGERMOTION:
 			if (event.tfinger.fingerId >= MAX_FINGERS)
 				continue;
 			break;
@@ -256,82 +266,85 @@ void EventThread::process(RGSSThreadData &rtData)
 			if (event.syswm.msg->msg.win.msg == 32769) // from WM_APP + 1 (32769)
 			{
 				int lParam = event.syswm.msg->msg.win.lParam;
-				//int uID = event.syswm.msg->msg.win.wParam;
+				// int uID = event.syswm.msg->msg.win.wParam;
 
 				switch (lParam)
 				{
-					case WM_LBUTTONUP:
-						Debug() << "[Tray Icon] was pressed";
-						// Switch to OneShot Window
-						SwitchToThisWindow(event.syswm.msg->msg.win.hwnd, true);
-						break;
-					case WM_RBUTTONDOWN:
-					case WM_CONTEXTMENU:
-						Debug() << "[Tray Icon] called context menu";
-						// Switch to OneShot Window
-						SwitchToThisWindow(event.syswm.msg->msg.win.hwnd, true);
-						break;
-					case WM_USER + 2: // NIN_BALLOONSHOW
-						Debug() << "[Balloon] was shown";
-						break;
-					case WM_USER + 3: // NIN_BALLOONHIDE
-						Debug() << "[Balloon] was hidden";
-						break;
-					case WM_USER + 4: // NIN_BALLOONTIMEOUT
-						Debug() << "[Balloon] was timeouted";
-						break;
-					case WM_USER + 5: // NIN_BALLOONUSERCLICK
-						Debug() << "[Balloon] was clicked";
-						// Switch to OneShot Window
-						SwitchToThisWindow(event.syswm.msg->msg.win.hwnd, true);
-						break;
+				case WM_LBUTTONUP:
+					Debug() << "[Tray Icon] was pressed";
+					// Switch to OneShot Window
+					SwitchToThisWindow(event.syswm.msg->msg.win.hwnd, true);
+					break;
+				case WM_RBUTTONDOWN:
+				case WM_CONTEXTMENU:
+					Debug() << "[Tray Icon] called context menu";
+					// Switch to OneShot Window
+					SwitchToThisWindow(event.syswm.msg->msg.win.hwnd, true);
+					break;
+				case WM_USER + 2: // NIN_BALLOONSHOW
+					Debug() << "[Balloon] was shown";
+					break;
+				case WM_USER + 3: // NIN_BALLOONHIDE
+					Debug() << "[Balloon] was hidden";
+					break;
+				case WM_USER + 4: // NIN_BALLOONTIMEOUT
+					Debug() << "[Balloon] was timeouted";
+					break;
+				case WM_USER + 5: // NIN_BALLOONUSERCLICK
+					Debug() << "[Balloon] was clicked";
+					// Switch to OneShot Window
+					SwitchToThisWindow(event.syswm.msg->msg.win.hwnd, true);
+					break;
 				}
 			}
 			break;
 #endif
-		case SDL_WINDOWEVENT :
+		case SDL_WINDOWEVENT:
 			switch (event.window.event)
 			{
-			case SDL_WINDOWEVENT_SIZE_CHANGED :
+			case SDL_WINDOWEVENT_SIZE_CHANGED:
 				winW = event.window.data1;
 				winH = event.window.data2;
 
-				//SDL_GL_GetDrawableSize(win, &winW, &winH);
+				// SDL_GL_GetDrawableSize(win, &winW, &winH);
 
 				windowSizeMsg.post(Vec2i(winW, winH));
 				resetInputStates();
 				break;
 
-			case SDL_WINDOWEVENT_ENTER :
+			case SDL_WINDOWEVENT_ENTER:
 				cursorInWindow = true;
 				mouseState.inWindow = true;
 				updateCursorState(cursorInWindow && windowFocused && !sMenu, gameScreen);
 
 				break;
 
-			case SDL_WINDOWEVENT_LEAVE :
+			case SDL_WINDOWEVENT_LEAVE:
 				cursorInWindow = false;
 				mouseState.inWindow = false;
 				updateCursorState(cursorInWindow && windowFocused && !sMenu, gameScreen);
 
 				break;
 
-			case SDL_WINDOWEVENT_CLOSE :
-				if (rtData.allowExit) {
+			case SDL_WINDOWEVENT_CLOSE:
+				if (rtData.allowExit)
+				{
 					terminate = true;
-				} else {
+				}
+				else
+				{
 					rtData.triedExit.set();
 				}
 
 				break;
 
-			case SDL_WINDOWEVENT_FOCUS_GAINED :
+			case SDL_WINDOWEVENT_FOCUS_GAINED:
 				windowFocused = true;
 				updateCursorState(cursorInWindow && windowFocused && !sMenu, gameScreen);
 
 				break;
 
-			case SDL_WINDOWEVENT_FOCUS_LOST :
+			case SDL_WINDOWEVENT_FOCUS_LOST:
 				windowFocused = false;
 				updateCursorState(cursorInWindow && windowFocused && !sMenu, gameScreen);
 				resetInputStates();
@@ -339,20 +352,23 @@ void EventThread::process(RGSSThreadData &rtData)
 				break;
 			}
 
-			#ifdef __APPLE__
-				case SDL_WINDOWEVENT_MOVED:
-					if (shState != NULL && event.window.data1 && event.window.data2)
-						shState->oneshot().setWindowPos(event.window.data1, event.window.data2);
-					break;
-			#endif
+#ifdef __APPLE__
+		case SDL_WINDOWEVENT_MOVED:
+			if (shState != NULL && event.window.data1 && event.window.data2)
+				shState->oneshot().setWindowPos(event.window.data1, event.window.data2);
+			break;
+#endif
 
 			break;
 
-		case SDL_QUIT :
-			if (rtData.allowExit) {
+		case SDL_QUIT:
+			if (rtData.allowExit)
+			{
 				terminate = true;
 				Debug() << "EventThread termination requested";
-			} else {
+			}
+			else
+			{
 				rtData.triedExit.set();
 			}
 
@@ -360,7 +376,8 @@ void EventThread::process(RGSSThreadData &rtData)
 
 		case SDL_TEXTINPUT:
 			SDL_LockMutex(inputMut);
-			if (rtData.acceptingTextInput && rtData.inputText.length() + strlen(event.text.text) < (size_t)(rtData.inputTextLimit)) rtData.inputText += event.text.text;
+			if (rtData.acceptingTextInput && rtData.inputText.length() + strlen(event.text.text) < (size_t)(rtData.inputTextLimit))
+				rtData.inputText += event.text.text;
 			SDL_UnlockMutex(inputMut);
 			break;
 
@@ -392,25 +409,25 @@ void EventThread::process(RGSSThreadData &rtData)
 				{
 					displayingFPS = false;
 
-					if (!rtData.config.printFPS)
+					if (!rtData.config.graphics.printFPS)
 						fps.sendUpdates.clear();
 
 					if (fullscreen)
 					{
 						/* Prevent fullscreen flicker */
-						strncpy(pendingTitle, rtData.config.windowTitle.c_str(),
-						        sizeof(pendingTitle));
+						strncpy(pendingTitle, rtData.config.game.windowTitle.c_str(),
+								sizeof(pendingTitle));
 						break;
 					}
 
-					SDL_SetWindowTitle(win, rtData.config.windowTitle.c_str());
+					SDL_SetWindowTitle(win, rtData.config.game.windowTitle.c_str());
 				}
 
 				break;
 			}
 
-
-			if (event.key.keysym.scancode == SDL_SCANCODE_F3 && rtData.allowForceQuit) {
+			if (event.key.keysym.scancode == SDL_SCANCODE_F3 && rtData.allowForceQuit)
+			{
 				// ModShot addition: force quit the game, no prompting or saving
 				Debug() << "Force terminating ModShot";
 				terminate = true;
@@ -420,7 +437,7 @@ void EventThread::process(RGSSThreadData &rtData)
 
 			if (event.key.keysym.scancode == SDL_SCANCODE_F12)
 			{
-				if (!rtData.config.debugMode)
+				if (!rtData.config.game.debugMode)
 					break;
 
 				if (resetting)
@@ -432,13 +449,16 @@ void EventThread::process(RGSSThreadData &rtData)
 				break;
 			}
 
-			if (rtData.acceptingTextInput && event.key.keysym.sym == SDLK_BACKSPACE) {
+			if (rtData.acceptingTextInput && event.key.keysym.sym == SDLK_BACKSPACE)
+			{
 				// remove one unicode character
 				SDL_LockMutex(inputMut);
-				while (rtData.inputText.length() != 0 && rtData.inputText.back() & 0xc0 == 0x80) {
+				while (rtData.inputText.length() != 0 && rtData.inputText.back() & 0xc0 == 0x80)
+				{
 					rtData.inputText.pop_back();
 				}
-				if (rtData.inputText.length() != 0) {
+				if (rtData.inputText.length() != 0)
+				{
 					rtData.inputText.pop_back();
 				}
 				SDL_UnlockMutex(inputMut);
@@ -448,14 +468,14 @@ void EventThread::process(RGSSThreadData &rtData)
 			SDL_UnlockMutex(inputMut);
 			break;
 
-		case SDL_KEYUP :
+		case SDL_KEYUP:
 			SDL_LockMutex(inputMut);
 			keyStates[KEYCODE_TO_SCUFFEDCODE(event.key.keysym.sym)] = false;
 			SDL_UnlockMutex(inputMut);
 			modkeys = event.key.keysym.mod;
 			if (event.key.keysym.scancode == SDL_SCANCODE_F12)
 			{
-				if (!rtData.config.debugMode)
+				if (!rtData.config.game.debugMode)
 					break;
 
 				resetting = false;
@@ -502,35 +522,35 @@ void EventThread::process(RGSSThreadData &rtData)
 			SDL_GameControllerClose(gcit->second);
 			break;
 
-		case SDL_JOYBUTTONDOWN :
+		case SDL_JOYBUTTONDOWN:
 			if (joysticks.find(event.jbutton.which) != joysticks.end())
 				SDL_LockMutex(inputMut);
-				joyState.buttons[event.jbutton.button] = true;
-				SDL_UnlockMutex(inputMut);
+			joyState.buttons[event.jbutton.button] = true;
+			SDL_UnlockMutex(inputMut);
 			break;
 
-		case SDL_JOYBUTTONUP :
+		case SDL_JOYBUTTONUP:
 			if (joysticks.find(event.jbutton.which) != joysticks.end())
 				SDL_LockMutex(inputMut);
-				joyState.buttons[event.jbutton.button] = false;
-				SDL_UnlockMutex(inputMut);
+			joyState.buttons[event.jbutton.button] = false;
+			SDL_UnlockMutex(inputMut);
 			break;
 
-		case SDL_JOYHATMOTION :
+		case SDL_JOYHATMOTION:
 			if (joysticks.find(event.jbutton.which) != joysticks.end())
 				SDL_LockMutex(inputMut);
-				joyState.hats[event.jhat.hat] = event.jhat.value;
-				SDL_UnlockMutex(inputMut);
+			joyState.hats[event.jhat.hat] = event.jhat.value;
+			SDL_UnlockMutex(inputMut);
 			break;
 
-		case SDL_JOYAXISMOTION :
+		case SDL_JOYAXISMOTION:
 			if (joysticks.find(event.jbutton.which) != joysticks.end())
 				SDL_LockMutex(inputMut);
-				joyState.axes[event.jaxis.axis] = event.jaxis.value;
-				SDL_UnlockMutex(inputMut);
+			joyState.axes[event.jaxis.axis] = event.jaxis.value;
+			SDL_UnlockMutex(inputMut);
 			break;
 
-		case SDL_JOYDEVICEADDED :
+		case SDL_JOYDEVICEADDED:
 			if (SDL_IsGameController(event.jdevice.which))
 				break;
 			js = SDL_JoystickOpen(event.jdevice.which);
@@ -539,9 +559,10 @@ void EventThread::process(RGSSThreadData &rtData)
 			SDL_UnlockMutex(inputMut);
 			break;
 
-		case SDL_JOYDEVICEREMOVED :
+		case SDL_JOYDEVICEREMOVED:
 			jsit = joysticks.find(event.jdevice.which);
-			if (jsit != joysticks.end()) {
+			if (jsit != joysticks.end())
+			{
 				SDL_LockMutex(inputMut);
 				SDL_JoystickClose(jsit->second);
 				resetInputStates();
@@ -550,19 +571,19 @@ void EventThread::process(RGSSThreadData &rtData)
 			}
 			break;
 
-		case SDL_MOUSEBUTTONDOWN :
+		case SDL_MOUSEBUTTONDOWN:
 			SDL_LockMutex(inputMut);
 			mouseState.buttons[event.button.button] = true;
 			SDL_UnlockMutex(inputMut);
 			break;
 
-		case SDL_MOUSEBUTTONUP :
+		case SDL_MOUSEBUTTONUP:
 			SDL_LockMutex(inputMut);
 			mouseState.buttons[event.button.button] = false;
 			SDL_UnlockMutex(inputMut);
 			break;
 
-		case SDL_MOUSEMOTION :
+		case SDL_MOUSEMOTION:
 			SDL_LockMutex(inputMut);
 			mouseState.x = event.motion.x;
 			mouseState.y = event.motion.y;
@@ -570,14 +591,14 @@ void EventThread::process(RGSSThreadData &rtData)
 			updateCursorState(cursorInWindow, gameScreen);
 			break;
 
-		case SDL_FINGERDOWN :
+		case SDL_FINGERDOWN:
 			i = event.tfinger.fingerId;
 			SDL_LockMutex(inputMut);
 			touchState.fingers[i].down = true;
 			SDL_UnlockMutex(inputMut);
 			/* falls through */
 
-		case SDL_FINGERMOTION :
+		case SDL_FINGERMOTION:
 			i = event.tfinger.fingerId;
 			SDL_LockMutex(inputMut);
 			touchState.fingers[i].x = event.tfinger.x * winW;
@@ -585,47 +606,47 @@ void EventThread::process(RGSSThreadData &rtData)
 			SDL_UnlockMutex(inputMut);
 			break;
 
-		case SDL_FINGERUP :
+		case SDL_FINGERUP:
 			i = event.tfinger.fingerId;
 			SDL_LockMutex(inputMut);
 			memset(&touchState.fingers[i], 0, sizeof(touchState.fingers[0]));
 			SDL_UnlockMutex(inputMut);
 			break;
 
-		default :
+		default:
 			/* Handle user events */
-			switch(event.type - usrIdStart)
+			switch (event.type - usrIdStart)
 			{
-			case REQUEST_SETFULLSCREEN :
+			case REQUEST_SETFULLSCREEN:
 				setFullscreen(win, static_cast<bool>(event.user.code));
 				break;
 
-			case REQUEST_WINRESIZE :
+			case REQUEST_WINRESIZE:
 				SDL_SetWindowSize(win, event.window.data1, event.window.data2);
 				break;
 
-			case REQUEST_MESSAGEBOX :
+			case REQUEST_MESSAGEBOX:
 				SDL_ShowSimpleMessageBox(event.user.code,
-				                         rtData.config.windowTitle.c_str(),
-				                         (const char*) event.user.data1, win);
+										 rtData.config.game.windowTitle.c_str(),
+										 (const char *)event.user.data1, win);
 				free(event.user.data1);
 				msgBoxDone.set();
 				break;
 
-			case REQUEST_SETCURSORVISIBLE :
+			case REQUEST_SETCURSORVISIBLE:
 				showCursor = event.user.code;
 				updateCursorState(cursorInWindow, gameScreen);
 				break;
 
-			case UPDATE_FPS :
-				if (rtData.config.printFPS)
+			case UPDATE_FPS:
+				if (rtData.config.graphics.printFPS)
 					Debug() << "FPS:" << event.user.code;
 
 				if (!fps.sendUpdates)
 					break;
 
 				snprintf(buffer, sizeof(buffer), "%s - %d FPS",
-				         rtData.config.windowTitle.c_str(), event.user.code);
+						 rtData.config.game.windowTitle.c_str(), event.user.code);
 
 				/* Updating the window title in fullscreen
 				 * mode seems to cause flickering */
@@ -638,7 +659,7 @@ void EventThread::process(RGSSThreadData &rtData)
 				SDL_SetWindowTitle(win, buffer);
 				break;
 
-			case UPDATE_SCREEN_RECT :
+			case UPDATE_SCREEN_RECT:
 				gameScreen.x = event.user.windowID;
 				gameScreen.y = event.user.code;
 				gameScreen.w = reinterpret_cast<intptr_t>(event.user.data1);
@@ -666,47 +687,47 @@ void EventThread::process(RGSSThreadData &rtData)
 
 int EventThread::eventFilter(void *data, SDL_Event *event)
 {
-	RGSSThreadData &rtData = *static_cast<RGSSThreadData*>(data);
+	RGSSThreadData &rtData = *static_cast<RGSSThreadData *>(data);
 
 	switch (event->type)
 	{
-	case SDL_APP_WILLENTERBACKGROUND :
+	case SDL_APP_WILLENTERBACKGROUND:
 		Debug() << "SDL_APP_WILLENTERBACKGROUND";
 
-		#ifndef USE_FMOD
+#ifndef USE_FMOD
 		if (HAVE_ALC_DEVICE_PAUSE)
 			alc.DevicePause(rtData.alcDev);
-		#endif
+#endif
 
 		rtData.syncPoint.haltThreads();
 
 		return 0;
 
-	case SDL_APP_DIDENTERBACKGROUND :
+	case SDL_APP_DIDENTERBACKGROUND:
 		Debug() << "SDL_APP_DIDENTERBACKGROUND";
 		return 0;
 
-	case SDL_APP_WILLENTERFOREGROUND :
+	case SDL_APP_WILLENTERFOREGROUND:
 		Debug() << "SDL_APP_WILLENTERFOREGROUND";
 		return 0;
 
-	case SDL_APP_DIDENTERFOREGROUND :
+	case SDL_APP_DIDENTERFOREGROUND:
 		Debug() << "SDL_APP_DIDENTERFOREGROUND";
 
-		#ifndef USE_FMOD
+#ifndef USE_FMOD
 		if (HAVE_ALC_DEVICE_PAUSE)
 			alc.DeviceResume(rtData.alcDev);
-		#endif
+#endif
 
 		rtData.syncPoint.resumeThreads();
 
 		return 0;
 
-	case SDL_APP_TERMINATING :
+	case SDL_APP_TERMINATING:
 		Debug() << "SDL_APP_TERMINATING";
 		return 0;
 
-	case SDL_APP_LOWMEMORY :
+	case SDL_APP_LOWMEMORY:
 		Debug() << "SDL_APP_LOWMEMORY";
 		return 0;
 
@@ -734,7 +755,6 @@ void EventThread::cleanup()
 	while (SDL_PollEvent(&event))
 		if ((event.type - usrIdStart) == REQUEST_MESSAGEBOX)
 			free(event.user.data1);
-
 }
 
 void EventThread::resetInputStates()
@@ -749,15 +769,14 @@ void EventThread::resetInputStates()
 
 void EventThread::setFullscreen(SDL_Window *win, bool mode)
 {
-	SDL_SetWindowFullscreen
-	        (win, mode ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+	SDL_SetWindowFullscreen(win, mode ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 	fullscreen = mode;
 }
 
 void EventThread::updateCursorState(bool inWindow,
-                                    const SDL_Rect &screen)
+									const SDL_Rect &screen)
 {
-	SDL_Point pos = { mouseState.x, mouseState.y };
+	SDL_Point pos = {mouseState.x, mouseState.y};
 	bool inScreen = inWindow && SDL_PointInRect(&pos, &screen);
 
 	if (inScreen)
@@ -846,7 +865,7 @@ void EventThread::notifyFrame()
 
 	static uint64_t freq = SDL_GetPerformanceFrequency();
 
-	double currFPS = (double) freq / diff;
+	double currFPS = (double)freq / diff;
 	fps.acc += currFPS;
 	++fps.accDiv;
 
@@ -874,8 +893,8 @@ void EventThread::notifyGameScreenChange(const SDL_Rect &screen)
 	event.type = usrIdStart + UPDATE_SCREEN_RECT;
 	event.user.windowID = screen.x;
 	event.user.code = screen.y;
-	event.user.data1 = reinterpret_cast<void*>(screen.w);
-	event.user.data2 = reinterpret_cast<void*>(screen.h);
+	event.user.data1 = reinterpret_cast<void *>(screen.w);
+	event.user.data2 = reinterpret_cast<void *>(screen.h);
 	SDL_PushEvent(&event);
 }
 

@@ -3,11 +3,12 @@
 
 # for debug REMOVE BEFORE COMMITTING / BUILDING
 # require "zlib"
+require "zlib"
 
 class Language
   FONT_WESTERN = 'Terminus (TTF)'
   FONT_J = 'HigashiOme Gothic regular'
-  LANGUAGES = []
+  LANGUAGES = ['en']
   class << self
     def set(lc)
       dbg_print(lc.lang)
@@ -45,7 +46,7 @@ class Language
             #unescape the string
             eval("msgstr = " + line)
             if !(msgid.nil? || msgid.empty?)
-              @data[Oneshot::crc32(msgid)] = msgstr
+              @data[Zlib.crc32(msgid)] = msgstr
             end
           end
         end
@@ -56,7 +57,7 @@ class Language
     def tr(string)
       #dbg_print(caller_locations(1, 1).first.tap{|loc| puts "#{loc.path}:#{loc.lineno}"})
       if @data
-        rv = @data[Oneshot::crc32(string)] || string
+        rv = @data[Zlib.crc32(string)] || string
       else
         rv = string
       end

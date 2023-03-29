@@ -28,112 +28,101 @@
 
 struct Config
 {
-	int rgssVersion;
+	struct
+	{
+		bool printFPS = false;
+		bool fullscreen = false;
+		bool fixedAspectRatio = true;
+		bool smoothScaling = false;
+		bool vsync = true;
+		bool subImageFix = false;
+		bool enableBlitting = true;
+		bool frameSkip = true;
+		bool syncToRefreshrate = false;
+		bool solidFonts = false;
 
-	bool debugMode;
-	bool screenMode;
-	bool printFPS;
-
-	bool fullscreen;
-	bool fixedAspectRatio;
-	bool smoothScaling;
-	bool vsync;
-
-	int defScreenW;
-	int defScreenH;
-	std::string windowTitle;
-
-	int fixedFramerate;
-	bool frameSkip;
-	bool syncToRefreshrate;
-
-	bool solidFonts;
-
-	bool subImageFix;
-	bool enableBlitting;
-	int maxTextureSize;
-
-	std::string gameFolder;
-	bool allowSymlinks;
-	bool pathCache;
-
-	/*
-	MJIT options (experimental):
-	  --mjit-warnings Enable printing JIT warnings
-	  --mjit-debug    Enable JIT debugging (very slow), or add cflags if specified
-	  --mjit-wait     Wait until JIT compilation finishes every time (for testing)
-	  --mjit-save-temps
-	                  Save JIT temporary files in $TMP or /tmp (for testing)
-	  --mjit-verbose=num
-	                  Print JIT logs of level num or less to stderr (default: 0)
-	  --mjit-max-cache=num
-	                  Max number of methods to be JIT-ed in a cache (default: 10000)
-	  --mjit-min-calls=num
-	                  Number of calls to trigger JIT (for testing, default: 10000)
-
-	YJIT options (experimental):
-	  --yjit-exec-mem-size=num
-	                  Size of executable memory block in MiB (default: 256)
-	  --yjit-call-threshold
-	                  Number of calls to trigger JIT (default: 10)
-	  --yjit-max-versions
-	                  Maximum number of versions per basic block (default: 4)
-	  --yjit-greedy-versioning
-	                  Greedy versioning mode (default: disabled)
-	*/
-
-	bool mjitEnabled;
-	int mjitVerbosity;
-	int mjitMaxCache;
-	int mjitMinCalls;
-
-	bool yjitEnabled;
-	int yjitCallThreshold;
-	int yjitMaxVersions;
-	bool yjitGreedyVersioning;
-
-	bool winConsole;
-
-	//int maxFmodChannels;
-
-	std::string iconPath;
+		int64_t defScreenW = 640;
+		int64_t defScreenH = 480;
+		int64_t maxTextureSize = 0;
+		int64_t fixedFramerate = 0;
+	} graphics;
 
 	struct
 	{
-		int sourceCount;
-	} SE;
+		bool enabled = false;
 
-	int audioChannels;
+		int64_t verbosity = 0;
+		int64_t maxCache = 100;
+		int64_t minCalls = 10000;
+	} mjit;
 
-	bool useScriptNames;
+	struct
+	{
+		bool enabled = false;
+		bool greedyVersioning = false;
 
-	std::string customScript;
-	std::set<std::string> preloadScripts;
-	std::vector<std::string> rtps;
+		int64_t callThreshold = 10;
+		int64_t maxVersions = 4;
+	} yjit;
 
-	std::vector<std::string> fontSubs;
+	struct
+	{
+		int64_t sourceCount = 64;
+		int64_t audioChannels = 0;
+	} audio;
 
-	std::vector<std::string> rubyLoadpaths;
+	struct
+	{
+		std::vector<std::string> rtps;
+		std::vector<std::string> fontSubs;
+		std::vector<std::string> rubyLoadpaths;
+
+		std::string customDataPath;
+		std::string commonDataPath = "OneShot";
+		std::string iconPath = "";
+		std::string exeName = "modshot";
+
+		bool useScriptNames;
+		bool allowSymlinks = false;
+		bool pathCache = true;
+	} paths;
 
 	/* Editor flags */
-	struct {
-		bool debug;
-		bool battleTest;
+	struct
+	{
+		bool debug = false;
+		bool battleTest = false;
 	} editor;
 
 	/* Game INI contents */
-	struct {
-		std::string scripts;
-		std::string title;
+	struct
+	{
+		std::string scripts = "Data/xScripts.rxdata";
+		std::string title = "OneShot";
+		std::string folder = "..";
+		std::string windowTitle = "";
+		std::string customScript;
+
+		std::set<std::string> preloadScripts;
+
+		int64_t rgssVersion = 1;
+
+		bool console = false;
+		bool debugMode = false;
 	} game;
 
-	/* Internal */
-	std::string customDataPath;
-	std::string commonDataPath;
+	struct {
+		bool enabled = false;
+		bool titlebar = false;
+		std::string name = "The Journal";
+		std::string imagePath = "./Graphics/Journal/";
+	} screen_mode;
 
 	Config();
 
-	void read(int argc, char *argv[]);
+	void read(int argc, char *argv[], void (*errorFunc)(const std::string &));
+	void read_config_file(void (*errorFunc)(const std::string &));
+	void read_arguments(int argc, char *argv[], void (*errorFunc)(const std::string &));
 };
 
 #endif // CONFIG_H

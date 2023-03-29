@@ -105,7 +105,7 @@ struct SharedStatePrivate
 	SharedStatePrivate(RGSSThreadData *threadData)
 	    : bindingData(0),
 	      sdlWindow(threadData->window),
-	      fileSystem(threadData->config.allowSymlinks),
+	      fileSystem(threadData->config.paths.allowSymlinks),
 	      eThread(*threadData->ethread),
 	      rtData(*threadData),
 	      config(threadData->config),
@@ -127,7 +127,7 @@ struct SharedStatePrivate
 
 		fileSystem.addPath(".");
 
-		if (config.pathCache)
+		if (config.paths.pathCache)
 			fileSystem.createPathCache();
 
 		fileSystem.initFontSets(fontState);
@@ -168,7 +168,7 @@ void SharedState::initInstance(RGSSThreadData *threadData)
 	 * SharedState depends on GlobalIBO existing,
 	 * Font depends on SharedState existing */
 
-	rgssVersion = threadData->config.rgssVersion;
+	rgssVersion = threadData->config.game.rgssVersion;
 
 	_globalIBO = new GlobalIBO();
 	_globalIBO->ensureSize(1);

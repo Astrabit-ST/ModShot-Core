@@ -10,7 +10,7 @@ RUBY_LIB_DIR="$DIR/build-${MODSHOT_PREFIX}/lib/ruby"
 
 function fail() {
     echo "$1"
-    echo "Please beat the crap out of Pancakes until he fixes this issue."
+    echo "Please beat the crap out of Linux until she fixes this issue."
     exit 1
 }
 

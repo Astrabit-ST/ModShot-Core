@@ -10,7 +10,7 @@ if [[ $OSTYPE == msys ]]; then
     pacboy -S git: vim: libtool: autoconf: automake: gcc:p make:p cmake:p \
     ruby:p bison: doxygen:p SDL2:p SDL2_image:p SDL2_ttf:p openal:p \
     freetype:p physfs:p pixman:p libwebp:p zlib:p meson:p clang:p bzip2:p \
-    libvorbis:p libogg:p zeromq:p libsigc++:p boost:p libpng:p \
+    libvorbis:p libogg:p zeromq:p libsigc++:p libpng:p \
     libjpeg-turbo:p libtiff:p harfbuzz:p --needed --noconfirm
 else 
     if [[ "$(cat /etc/os-release)" == *debian* || "$(cat /etc/os-release)" == *ubuntu* ]];
@@ -20,7 +20,7 @@ else
         sudo apt install -y gcc make cmake vim ruby bison doxygen meson \
         libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libopenal-dev \
         libphysfs-dev libpixman-1-dev libwebp-dev libbz2-dev libvorbis-dev \
-        libogg-dev libsodium-dev libboost-dev libpng-dev libjpeg-dev \
+        libogg-dev libsodium-dev libpng-dev libjpeg-dev \
         libtiff-dev libsigc++-2.0-dev libgtk-3-dev libxfconf-0-dev \
         libfreetype-dev libharfbuzz-dev
     fi
@@ -33,7 +33,7 @@ else
         doxygen sdl2 openal pixman libwebp bzip2 libvorbis libogg libsodium \
         libpng libjpeg libtiff zeromq mm-common base-devel gtk3
         echo " * Installing dependencies with pamac..."
-        sudo pamac install sdl2_image sdl2_ttf physfs boost boost-libs \
+        sudo pamac install sdl2_image sdl2_ttf physfs \
         libsigc++ sdl_sound m4 meson freetype harfbuzz --no-confirm
     fi
 
@@ -48,7 +48,7 @@ else
         libjpeg-turbo-devel libogg libogg-devel libtiff libtiff-devel \
         libsodium libsodium-devel zeromq zeromq-devel physfs physfs-devel \
         pixman pixman-devel bzip2 openal-soft speex speex-devel libmodplug \
-        libmodplug-devel boost boost-devel openal-soft-devel xfconf \
+        libmodplug-devel openal-soft-devel xfconf \
         xfconf-devel gtk3 gtk3-devel libsigc++-devel harfbuzz-devel
     fi
 fi

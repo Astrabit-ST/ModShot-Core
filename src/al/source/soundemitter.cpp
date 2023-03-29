@@ -90,7 +90,7 @@ arrayPushBack(std::vector<size_t> &array, size_t size, size_t index)
 
 SoundEmitter::SoundEmitter(const Config &conf)
     : bufferBytes(0),
-      srcCount(conf.SE.sourceCount),
+      srcCount(conf.audio.sourceCount),
       alSrcs(srcCount),
       atchBufs(srcCount),
       srcPrio(srcCount)

@@ -555,7 +555,7 @@ struct TilemapPrivate
 			/* Mega surface tileset */
 			SDL_Surface *tsSurf = tileset->megaSurface();
 
-			if (shState->config().subImageFix)
+			if (shState->config().graphics.subImageFix)
 			{
 				/* Implementation for broken GL drivers */
 				FBO::bind(atlas.gl.fbo);

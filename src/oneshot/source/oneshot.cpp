@@ -179,7 +179,7 @@ Oneshot::Oneshot(RGSSThreadData &threadData) :
 {
 	p = new OneshotPrivate();
 	p->window = threadData.window;
-	p->savePath = threadData.config.commonDataPath.substr(0, threadData.config.commonDataPath.size() - 1);
+	p->savePath = threadData.config.paths.commonDataPath.substr(0, threadData.config.paths.commonDataPath.size() - 1);
 	p->obscuredMap.resize(640 * 480, 255);
 	obscuredDirty = true;
 	p->winX = 0;

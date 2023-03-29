@@ -59,6 +59,7 @@ Instead, ModShot now makes use of meson, bash, and make, in a fairly simple setu
 
 Because of this, compiling with Visual Studio as was standard before is no longer supported, and instead compiling using the msys2 toolset is required.
 The main upshot of this, of course, is remaining on par with ruby in terms of gem support. (at least for windows)
+With some hacking, you could probably get this setup working with Visual Studio, but it's honestly not worth the effort.
 
 Previously, C extensions were very jank with ModShot, **however** now you can use a C extension right from your own Ruby install!
 (Provided the version is the same, and the msys2 evironment is the same. I'll get back to this later.)
@@ -76,7 +77,7 @@ You will then need to pass `-Dfmod=true` as an option.
 ModShot should handle everything from there, it's up to you to follow the FMOD license.
 
 FMOD bindings also do not supply the `Audio` module. You may create wrapper functions for that if you wish.
-AL Effect bndings are not supplied as well for obvious reasons.
+AL Effect bindings are not supplied as well for obvious reasons.
 
 Functions will always return an array of values (usually two) in the order of `[result, values...]`.
 This means you can do `result, value = FMOD.some_func()`, which is pretty neat, right? If a result is not `FMOD_OK` (0) there will be no return value. Keep that in mind!
@@ -179,9 +180,9 @@ This should create a folder called `out` with your build of ModShot all ready to
 
 ## Configuration
 
-*ModShot* reads configuration data from the file "oneshot.conf". The format is ini-style. Do *not* use quotes around file paths (spaces won't break). Lines starting with '#' are comments. See 'oneshot.conf.sample' for a list of accepted entries.
+*ModShot* reads configuration data from the file "modshot.toml". It's a toml file, because toml is cool.
 
-All option entries can alternatively be specified as command line options. Any options that are not arrays (eg. preloaded scripts) specified as command line options will override entries in oneshot.conf. Note that you will have to wrap values containing spaces in quotes (unlike in oneshot.conf).
+All option entries can alternatively be specified as command line options. Any options that are not arrays (eg. preloaded scripts) specified as command line options will override entries in modshot.toml. Note that you will have to wrap values containing spaces in quotes.
 
 The syntax is: `--<option>=<value>`
 

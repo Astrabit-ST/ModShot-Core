@@ -75,10 +75,10 @@ rgssThreadError(RGSSThreadData *rtData, const std::string &msg)
 	rtData->rqTermAck.set();
 }
 
-static inline const char*
+static inline const char *
 glGetStringInt(GLenum name)
 {
-	return (const char*) gl.GetString(name);
+	return (const char *)gl.GetString(name);
 }
 
 static void
@@ -92,7 +92,7 @@ printGLInfo()
 
 int rgssThreadFun(void *userdata)
 {
-	RGSSThreadData *threadData = static_cast<RGSSThreadData*>(userdata);
+	RGSSThreadData *threadData = static_cast<RGSSThreadData *>(userdata);
 	const Config &conf = threadData->config;
 	SDL_Window *win = threadData->window;
 	SDL_GLContext glCtx;
@@ -124,23 +124,24 @@ int rgssThreadFun(void *userdata)
 		return 0;
 	}
 
-	if (!conf.enableBlitting)
+	if (!conf.graphics.enableBlitting)
 		gl.BlitFramebuffer = 0;
 
 	gl.ClearColor(0, 0, 0, 1);
 	gl.Clear(GL_COLOR_BUFFER_BIT);
 	SDL_GL_SwapWindow(win);
 
+	Debug() << "ModShot version" << MODSHOT_VERSION;
 	printGLInfo();
 
-	bool vsync = conf.vsync || conf.syncToRefreshrate;
+	bool vsync = conf.graphics.vsync || conf.graphics.syncToRefreshrate;
 	SDL_GL_SetSwapInterval(vsync ? 1 : 0);
 
 #ifndef NDEBUG
 	GLDebugLogger dLogger;
 #endif
 
-	#ifndef USE_FMOD
+#ifndef USE_FMOD
 	/* Setup AL context */
 	ALCcontext *alcCtx = alcCreateContext(threadData->alcDev, 0);
 
@@ -153,7 +154,7 @@ int rgssThreadFun(void *userdata)
 	}
 
 	alcMakeContextCurrent(alcCtx);
-	#endif
+#endif
 
 	try
 	{
@@ -162,9 +163,9 @@ int rgssThreadFun(void *userdata)
 	catch (const Exception &exc)
 	{
 		rgssThreadError(threadData, exc.msg);
-		#ifndef USE_FMOD
+#ifndef USE_FMOD
 		alcDestroyContext(alcCtx);
-		#endif
+#endif
 		SDL_GL_DeleteContext(glCtx);
 
 		return 0;
@@ -178,9 +179,9 @@ int rgssThreadFun(void *userdata)
 
 	SharedState::finiInstance();
 
-	#ifndef USE_FMOD
+#ifndef USE_FMOD
 	alcDestroyContext(alcCtx);
-	#endif
+#endif
 	SDL_GL_DeleteContext(glCtx);
 
 	return 0;
@@ -196,10 +197,10 @@ static void setupWindowIcon(const Config &conf, SDL_Window *win)
 {
 	SDL_RWops *iconSrc;
 
-	if (conf.iconPath.empty())
+	if (conf.paths.iconPath.empty())
 		iconSrc = SDL_RWFromConstMem(___assets_icon_png, ___assets_icon_png_len);
 	else
-		iconSrc = SDL_RWFromFile(conf.iconPath.c_str(), "rb");
+		iconSrc = SDL_RWFromFile(conf.paths.iconPath.c_str(), "rb");
 
 	SDL_Surface *iconImg = IMG_Load_RW(iconSrc, SDL_TRUE);
 
@@ -211,17 +212,19 @@ static void setupWindowIcon(const Config &conf, SDL_Window *win)
 }
 
 // mainly doing this so journal app knows where to load images from
-static void setGamePathInRegistry() {
+static void setGamePathInRegistry()
+{
 
 #if defined WIN32
 	// this logic is currently windows specific
-	char* dataDir = SDL_GetBasePath();
+	char *dataDir = SDL_GetBasePath();
 	if (dataDir)
 	{
 		HKEY key;
 		long keyOpenError = RegOpenKey(HKEY_CURRENT_USER, TEXT("Software\\OneShot\\"), &key);
 
-		if (keyOpenError != ERROR_SUCCESS) {
+		if (keyOpenError != ERROR_SUCCESS)
+		{
 			// try creating the key first
 			long keyCreateError = RegCreateKeyEx(HKEY_CURRENT_USER, TEXT("Software\\OneShot\\"), 0L, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &key, NULL);
 
@@ -229,7 +232,8 @@ static void setGamePathInRegistry() {
 			{
 				showInitError("Unable to create key in registry.");
 			}
-			else {
+			else
+			{
 				keyOpenError = ERROR_SUCCESS;
 			}
 		}
@@ -238,7 +242,8 @@ static void setGamePathInRegistry() {
 		{
 			showInitError("Unable to open registry.");
 		}
-		else {
+		else
+		{
 			DWORD dataSize = (strlen(dataDir) + 1) * sizeof(char);
 			if (RegSetValueEx(key, TEXT("GameDirectory"), 0, REG_SZ, (LPBYTE)dataDir, dataSize) != ERROR_SUCCESS)
 			{
@@ -249,17 +254,18 @@ static void setGamePathInRegistry() {
 		SDL_free(dataDir);
 	}
 #endif
-	//TODO handle this for Linux/Mac
+	// TODO handle this for Linux/Mac
 }
 #ifdef _WIN32
 #include <windows.h>
-int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+{
 	auto argc = __argc;
 	auto argv = __argv;
 #else
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 #endif
-	Debug() << "ModShot version" << MODSHOT_VERSION;
 	SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
 	SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
 	SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, "1");
@@ -306,36 +312,44 @@ int main(int argc, char *argv[]) {
 
 	/* now we load the config */
 	Config conf;
-	conf.read(argc, argv);
+	conf.read(argc, argv, &showInitError);
 
-	if (!conf.gameFolder.empty())
-		if (chdir(conf.gameFolder.c_str()) != 0)
+	if (!conf.game.folder.empty())
+		if (chdir(conf.game.folder.c_str()) != 0)
 		{
-			showInitError(std::string("Unable to switch into gameFolder ") + conf.gameFolder);
+			showInitError(std::string("Unable to switch into game folder ") + conf.game.folder);
 			return 0;
 		}
 
 #ifdef __WIN32
-    // Create a debug console in debug mode
-    if (conf.winConsole) {
-      if (setupWindowsConsole()) {
-        reopenWindowsStreams();
-      } else {
-        char buf[200];
-        snprintf(buf, sizeof(buf), "Error allocating console: %lu",
-                GetLastError());
-        showInitError(std::string(buf));
-      }
-    }
+	// Create a debug console in debug mode
+	if (!conf.game.console)
+	{
+		/*if(!AttachConsole(ATTACH_PARENT_PROCESS)) {
+			if (setupWindowsConsole())
+			{
+				reopenWindowsStreams();
+			}
+			else
+			{
+				char buf[200];
+				snprintf(buf, sizeof(buf), "Error allocating console: %lu",
+						 GetLastError());
+				showInitError(std::string(buf));
+			}	
+		} else {
+			reopenWindowsStreams();
+		}*/
+		FreeConsole();
+	}
 #endif
 
-
-	extern int screenMain(Config &conf);
-	if (conf.screenMode)
+	extern int screenMain(Config & conf);
+	if (conf.screen_mode.enabled)
 		return screenMain(conf);
 
-	if (conf.windowTitle.empty())
-		conf.windowTitle = conf.game.title;
+	if (conf.game.windowTitle.empty())
+		conf.game.windowTitle = conf.game.title;
 
 	int imgFlags = IMG_INIT_PNG;
 	if (IMG_Init(imgFlags) != imgFlags)
@@ -355,7 +369,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
-	#ifndef USE_FMOD
+#ifndef USE_FMOD
 	if (Sound_Init() == 0)
 	{
 		showInitError(std::string("Error initializing SDL_sound: ") + Sound_GetError());
@@ -365,7 +379,7 @@ int main(int argc, char *argv[]) {
 
 		return 0;
 	}
-	#endif
+#endif
 
 	SDL_Window *win;
 	Uint32 winFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS; //| SDL_WINDOW_ALLOW_HIGHDPI;
@@ -374,12 +388,12 @@ int main(int argc, char *argv[]) {
 	// 	winFlags |= SDL_WINDOW_RESIZABLE;
 	// #endif
 
-	if (conf.fullscreen)
+	if (conf.graphics.fullscreen)
 		winFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
-	win = SDL_CreateWindow(conf.windowTitle.c_str(),
-	                       SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-	                       conf.defScreenW, conf.defScreenH, winFlags);
+	win = SDL_CreateWindow(conf.game.windowTitle.c_str(),
+						   SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+						   conf.graphics.defScreenW, conf.graphics.defScreenH, winFlags);
 
 	if (!win)
 	{
@@ -392,10 +406,10 @@ int main(int argc, char *argv[]) {
 #ifdef __LINUX__
 	setupWindowIcon(conf, win);
 #else
-	(void) setupWindowIcon;
+	(void)setupWindowIcon;
 #endif
 
-	#ifndef USE_FMOD
+#ifndef USE_FMOD
 
 	ALCdevice *alcDev = alcOpenDevice(0);
 
@@ -410,46 +424,33 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
-	if(alcIsExtensionPresent(alcDev, "ALC_EXT_EFX") != ALC_TRUE) {
+	if (alcIsExtensionPresent(alcDev, "ALC_EXT_EFX") != ALC_TRUE)
+	{
 		showInitError("OpenAL device does not support Effects extension.");
 	}
-	#else
-	//FMOD_RESULT result;
-	//FMOD_STUDIO_SYSTEM *system = NULL;
-	//
-	//result = FMOD_Studio_System_Create(&system, FMOD_VERSION);
-	//if (result != FMOD_OK) {
-	//	showInitError(std::string("Error creating FMOD system: ") + FMOD_ErrorString(result));
-	//	return 0;
-	//}
 
-	//result = FMOD_Studio_System_Initialize(system, conf.maxFmodChannels, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, 0);
-	//if (result != FMOD_OK) {
-	//	showInitError(std::string("Error initializing FMOD system: ") + FMOD_ErrorString(result));
-	//	return 0;
-	//}
-	#endif
+#endif
 
 	SDL_DisplayMode mode;
 	SDL_GetDisplayMode(0, 0, &mode);
 
 	/* Can't sync to display refresh rate if its value is unknown */
 	if (!mode.refresh_rate)
-		conf.syncToRefreshrate = false;
+		conf.graphics.syncToRefreshrate = false;
 
 	EventThread eventThread;
 	RGSSThreadData rtData(&eventThread, win,
-						  #ifndef USE_FMOD
-	                      alcDev,
-						  #else
-						  // system,
-						  #endif
+#ifndef USE_FMOD
+						  alcDev,
+#else
+// system,
+#endif
 						  mode.refresh_rate, conf);
 
 #ifndef STEAM
 	/* Add controller bindings from embedded controller DB */
 	SDL_RWops *controllerDB = SDL_RWFromConstMem(___assets_gamecontrollerdb_txt,
-	                                             ___assets_gamecontrollerdb_txt_len);
+												 ___assets_gamecontrollerdb_txt_len);
 	SDL_GameControllerAddMappingsFromRW(controllerDB, 1);
 #endif
 
@@ -464,12 +465,13 @@ int main(int argc, char *argv[]) {
 
 	/* Start RGSS thread */
 	SDL_Thread *rgssThread =
-	        SDL_CreateThread(rgssThreadFun, "rgss", &rtData);
+		SDL_CreateThread(rgssThreadFun, "rgss", &rtData);
 
 	/* Start event processing */
 	eventThread.process(rtData);
 
-	if(!EventThread::forceTerminate) {
+	if (!EventThread::forceTerminate)
+	{
 		/* Request RGSS thread to stop */
 		rtData.rqTerm.set();
 
@@ -479,7 +481,7 @@ int main(int argc, char *argv[]) {
 			/* We can stop waiting when the request was ack'd */
 			if (rtData.rqTermAck)
 			{
-				Debug() << "RGSS thread ack'd request after" << i*10 << "ms";
+				Debug() << "RGSS thread ack'd request after" << i * 10 << "ms";
 				break;
 			}
 
@@ -489,18 +491,18 @@ int main(int argc, char *argv[]) {
 
 		Debug() << "Waiting for shutdown";
 		/* If RGSS thread ack'd request, wait for it to shutdown,
-		* otherwise abandon hope and just end the process as is. */
+		 * otherwise abandon hope and just end the process as is. */
 		if (rtData.rqTermAck)
 			SDL_WaitThread(rgssThread, 0);
 		else
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.windowTitle.c_str(),
-									"The RGSS script seems to be stuck and OneShot will now force quit", win);
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.game.windowTitle.c_str(),
+									 "The RGSS script seems to be stuck and OneShot will now force quit", win);
 
 		if (!rtData.rgssErrorMsg.empty())
 		{
 			Debug() << rtData.rgssErrorMsg;
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.windowTitle.c_str(),
-									rtData.rgssErrorMsg.c_str(), win);
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.game.windowTitle.c_str(),
+									 rtData.rgssErrorMsg.c_str(), win);
 		}
 	}
 
@@ -514,14 +516,14 @@ int main(int argc, char *argv[]) {
 	unloadLocale();
 	unloadLanguageMetadata();
 
-	#ifndef USE_FMOD
+#ifndef USE_FMOD
 	alcCloseDevice(alcDev);
-	#endif
+#endif
 	SDL_DestroyWindow(win);
 
-	#ifndef USE_FMOD
+#ifndef USE_FMOD
 	Sound_Quit();
-	#endif
+#endif
 	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();

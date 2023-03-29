@@ -20,32 +20,15 @@
 */
 
 #include "config.h"
-
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/parsers.hpp>
-#include <boost/program_options/variables_map.hpp>
-
-#include <physfs.h>
-
-#include <fstream>
-#include <stdint.h>
-#include <cstdlib>
-
-#include "debugwriter.h"
 #include "util.h"
+#include "debugwriter.h"
 #include "sdl-util.h"
-
-namespace std
-{
-	std::ostream& operator<<(std::ostream &os, const std::vector<std::string> &vec)
-	{
-		for (auto item : vec)
-		{
-			os << item << " ";
-		}
-		return os;
-	}
-}
+#include "version.h"
+#include <physfs.h>
+#include <toml++/toml.h>
+#include <argparse/argparse.hpp>
+#include <sstream>
+#include <filesystem>
 
 static std::string prefPath(const char *org, const char *app)
 {
@@ -57,154 +40,171 @@ static std::string prefPath(const char *org, const char *app)
 	return path;
 }
 
-template<typename T>
-std::set<T> setFromVec(const std::vector<T> &vec)
-{
-	return std::set<T>(vec.begin(), vec.end());
-}
-
-typedef std::vector<std::string> StringVec;
-namespace po = boost::program_options;
-
-#define CONF_FILE "../modshot.conf"
+#define CONF_FILE "../modshot.toml"
 
 Config::Config()
-{}
-
-void Config::read(int argc, char *argv[])
 {
-#define PO_DESC_ALL \
-	PO_DESC(debugMode, bool, false) \
-	PO_DESC(screenMode, bool, false) \
-	PO_DESC(printFPS, bool, false) \
-	PO_DESC(fullscreen, bool, false) \
-	PO_DESC(fixedAspectRatio, bool, true) \
-	PO_DESC(smoothScaling, bool, false) \
-	PO_DESC(vsync, bool, true) \
-	PO_DESC(defScreenW, int, 0) \
-	PO_DESC(defScreenH, int, 0) \
-	PO_DESC(windowTitle, std::string, "") \
-	PO_DESC(fixedFramerate, int, 0) \
-	PO_DESC(frameSkip, bool, true) \
-	PO_DESC(syncToRefreshrate, bool, false) \
-	PO_DESC(solidFonts, bool, false) \
-	PO_DESC(subImageFix, bool, false) \
-	PO_DESC(enableBlitting, bool, true) \
-	PO_DESC(maxTextureSize, int, 0) \
-	PO_DESC(gameFolder, std::string, ".") \
-	PO_DESC(allowSymlinks, bool, false) \
-	PO_DESC(iconPath, std::string, "") \
-	PO_DESC(SE.sourceCount, int, 6) \
-	PO_DESC(audioChannels, int, 30) \
-	PO_DESC(pathCache, bool, true) \
-	PO_DESC(mjitEnabled, bool, false) \
-	PO_DESC(mjitVerbosity, int, 0) \
-	PO_DESC(mjitMaxCache, int, 100) \
-	PO_DESC(mjitMinCalls, int, 10000) \
-	PO_DESC(yjitEnabled, bool, false) \
-	PO_DESC(yjitCallThreshold, int, 10) \
-	PO_DESC(yjitMaxVersions, int, 4) \
-	PO_DESC(yjitGreedyVersioning, bool, false) \
-	PO_DESC(winConsole, bool, false)
-	//PO_DESC(maxFmodChannels, int, 512)
+}
 
-// Not gonna take your shit boost
-#define GUARD_ALL( exp ) try { exp } catch(...) {}
-
-	editor.debug = false;
-	editor.battleTest = false;
-
-	/* Read arguments sent from the editor */
-	if (argc > 1)
-	{
-		std::string argv1 = argv[1];
-		/* RGSS1 uses "debug", 2 and 3 use "test" */
-		if (argv1 == "debug" || argv1 == "test")
-			editor.debug = true;
-		else if (argv1 == "btest")
-			editor.battleTest = true;
-
-		/* Fix offset */
-		if (editor.debug || editor.battleTest)
-		{
-			argc--;
-			argv++;
-		}
+#define READ_VALUE_CAST(type, path, location, cast)                        \
+	if (node[#location])                                                   \
+	{                                                                      \
+		if (node[#location].is_##type())                                   \
+			path = (cast)*node[#location].as_##type();                     \
+		else                                                               \
+			Debug() << "Invalid type for" << #path << "expected" << #type; \
 	}
 
-#define PO_DESC(key, type, def) (#key, po::value< type >()->default_value(def))
+#define READ_BOOL(path, location) READ_VALUE_CAST(boolean, path, location, bool);
+#define READ_INT(path, location) READ_VALUE_CAST(integer, path, location, int64_t);
 
-	po::options_description podesc;
-	podesc.add_options()
-	        PO_DESC_ALL
-	        ("preloadScript", po::value<StringVec>()->composing()->default_value(StringVec()))
-	        ("fontSub", po::value<StringVec>()->composing()->default_value(StringVec()))
-	        ("rubyLoadpath", po::value<StringVec>()->composing()->default_value(StringVec()))
-	        ;
+void Config::read(int argc, char *argv[], void (*errorFunc)(const std::string &))
+{
+	read_config_file(errorFunc);
 
-	po::variables_map vm;
+	read_arguments(argc, argv, errorFunc);
 
-	/* Parse command line options */
+	paths.commonDataPath = prefPath(".", paths.commonDataPath.c_str());
+}
+
+void Config::read_arguments(int argc, char *argv[], void (*errorFunc)(const std::string &))
+{
+	argparse::ArgumentParser program("modshot", MODSHOT_VERSION);
+
+	program.add_argument("--printFPS", "-pfps")
+		.help("print fps in the window titlebar")
+		.nargs(0)
+		.action([&](const std::string &value)
+				{ graphics.printFPS = true; });
+
+	program.add_argument("--fullscreen", "-f")
+		.help("start modshot in fullscreen")
+		.nargs(0)
+		.action([&](const std::string &value)
+				{ graphics.fullscreen = true; });
+
+	program.add_argument("--fixedAspectRatio", "-far")
+		.help("force a fixed aspect ratio")
+		.nargs(0)
+		.action([&](const std::string &value)
+				{ graphics.fixedAspectRatio = true; });
+
+	program.add_argument("--screenMode", "-sm")
+		.help("launch with screen mode")
+		.nargs(0)
+		.action([&](const std::string &value)
+				{ screen_mode.enabled = true; });
+
+	program.add_argument("--screenTitlebar", "-stb")
+		.help("enable the screen mode titlebar")
+		.nargs(0)
+		.action([&](const std::string &value)
+				{ screen_mode.titlebar = true; });
+
+	program.add_argument("--screenName", "-sn")
+		.help("screen mode window name")
+		.nargs(1)
+		.action([&](const std::string &value)
+				{ screen_mode.name = value; });
+
+	program.add_argument("--screenFolder", "-sf")
+		.help("screen mode folder path")
+		.nargs(1)
+		.action([&](const std::string &value)
+				{ screen_mode.imagePath = value; });
+
+	program.add_argument("--gameFolder", "-gf")
+		.help("game folder path")
+		.nargs(1)
+		.default_value("..")
+		.action([&](const std::string &value)
+				{ game.folder = value; });
+
 	try
 	{
-		po::parsed_options cmdPo =
-			po::command_line_parser(argc, argv).options(podesc).run();
-		po::store(cmdPo, vm);
+		program.parse_args(argc, argv);
 	}
-	catch (po::error &error)
+	catch (const std::exception &e)
 	{
-		Debug() << "Command line:" << error.what();
+		std::cerr << e.what() << '\n';
+		std::cerr << program;
+		std::exit(1);
 	}
+}
 
-	/* Parse configuration file */
-	SDLRWStream confFile(CONF_FILE, "r");
-
-	if (confFile)
+void Config::read_config_file(void (*errorFunc)(const std::string &))
+{
+	if (std::filesystem::exists(CONF_FILE))
 	{
+		toml::table table;
 		try
 		{
-			po::store(po::parse_config_file(confFile.stream(), podesc, true), vm);
-			po::notify(vm);
+			table = toml::parse_file(CONF_FILE);
+			if (table["graphics"])
+			{
+				auto node = table["graphics"];
+
+				READ_BOOL(graphics.printFPS, printFPS)
+				READ_BOOL(graphics.fullscreen, fullscreen)
+				READ_BOOL(graphics.fixedAspectRatio, fixedAspectRatio)
+				READ_BOOL(graphics.smoothScaling, smoothScaling)
+				READ_BOOL(graphics.vsync, vsync)
+				READ_BOOL(graphics.subImageFix, subImageFix)
+				READ_BOOL(graphics.enableBlitting, enableBlitting)
+				READ_BOOL(graphics.frameSkip, frameSkip)
+				READ_BOOL(graphics.solidFonts, solidFonts)
+
+				READ_INT(graphics.defScreenW, defScreenW)
+				READ_INT(graphics.defScreenH, defScreenH)
+				READ_INT(graphics.maxTextureSize, maxTextureSize)
+				READ_INT(graphics.fixedFramerate, fixedFramerate)
+			}
+
+			if (table["mjit"])
+			{
+				auto node = table["mjit"];
+
+				READ_BOOL(mjit.enabled, enabled)
+
+				READ_INT(mjit.verbosity, verbosity)
+				READ_INT(mjit.maxCache, maxCache)
+				READ_INT(mjit.minCalls, minCalls)
+			}
+
+			if (table["yjit"])
+			{
+				auto node = table["yjit"];
+
+				READ_BOOL(yjit.enabled, enabled)
+				READ_BOOL(yjit.greedyVersioning, greedyVersioning)
+
+				READ_INT(yjit.callThreshold, callThreshold)
+				READ_INT(yjit.maxVersions, maxVersion)
+			}
+
+			if (table["audio"])
+			{
+				auto node = table["audio"];
+
+				READ_INT(audio.sourceCount, sourceCount)
+				READ_INT(audio.audioChannels, audioChannels)
+			}
+
+			if (table["game"])
+			{
+				auto node = table["game"];
+
+				READ_INT(game.rgssVersion, rgssVersion)
+
+				READ_BOOL(game.console, console)
+				READ_BOOL(game.debugMode, debugMode)
+			}
 		}
-		catch (po::error &error)
+		catch (const toml::parse_error &error)
 		{
-			Debug() << CONF_FILE":" << error.what();
+			std::stringstream ss("Config file parsing failed:\n");
+			ss << error;
+			errorFunc(ss.str());
 		}
 	}
-
-#undef PO_DESC
-#define PO_DESC(key, type, def) GUARD_ALL( key = vm[#key].as< type >(); )
-
-	PO_DESC_ALL;
-
-	GUARD_ALL( preloadScripts = setFromVec(vm["preloadScript"].as<StringVec>()); );
-
-	GUARD_ALL( fontSubs = vm["fontSub"].as<StringVec>(); );
-
-	GUARD_ALL( rubyLoadpaths = vm["rubyLoadpath"].as<StringVec>(); );
-
-#undef PO_DESC
-#undef PO_DESC_ALL
-
-	SE.sourceCount = clamp(SE.sourceCount, 1, 64);
-
-	commonDataPath = prefPath(".", "OneShot");
-
-	//Hardcode some ini/version settings
-	rgssVersion = 1;
-	game.title = "OneShot";
-	game.scripts = "Data/xScripts.rxdata";
-	gameFolder = "..";
-
-	defScreenW = 640;
-	defScreenH = 480;
-
-#ifdef STEAM
-	/* Override fullscreen config if Big Picture */
-	if (const char *env = std::getenv("SteamTenfoot"))
-	{
-		if (!strcmp(env, "1"))
-			fullscreen = true;
-	}
-#endif
 }

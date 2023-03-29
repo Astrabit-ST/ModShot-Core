@@ -207,10 +207,10 @@ static bool writeBindings(const BDescVec &d, const std::string &dir)
 
 void storeBindings(const BDescVec &d, const Config &conf)
 {
-	if (writeBindings(d, conf.customDataPath))
+	if (writeBindings(d, conf.paths.customDataPath))
 		return;
 
-	writeBindings(d, conf.commonDataPath);
+	writeBindings(d, conf.paths.commonDataPath);
 }
 
 #define READ(ptr, size, n, f) if (fread(ptr, size, n, f) < n) return false
@@ -309,10 +309,10 @@ BDescVec loadBindings(const Config &conf)
 {
 	BDescVec d;
 
-	if (readBindings(d, conf.customDataPath))
+	if (readBindings(d, conf.paths.customDataPath))
 		return d;
 
-	if (readBindings(d, conf.commonDataPath))
+	if (readBindings(d, conf.paths.commonDataPath))
 		return d;
 
 	return genDefaultBindings();

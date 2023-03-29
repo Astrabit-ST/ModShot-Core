@@ -138,7 +138,7 @@ executable(
     cpp_args: global_args,
     objc_args: global_args,
     objcpp_args: global_args,
-    win_subsystem: 'windows',
+    win_subsystem: 'console',
     install: (host_system != 'windows')
 )
 
