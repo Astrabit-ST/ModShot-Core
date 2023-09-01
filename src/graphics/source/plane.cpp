@@ -35,6 +35,10 @@
 #include "shader.h"
 #include "glstate.h"
 
+#include "binding-util.h"
+#include "rb_shader.h"
+#include "binding-types.h"
+
 #include <sigc++/connection.h>
 
 static float fwrap(float value, float range)
@@ -57,8 +61,6 @@ struct PlanePrivate
 	int ox, oy;
 	float zoomX, zoomY;
 
-	float waterTime;
-
 	Scene::Geometry sceneGeo;
 
 	bool quadSourceDirty;
@@ -70,6 +72,8 @@ struct PlanePrivate
 	sigc::connection prepareCon;
 	sigc::connection srcRectCon;
 
+	VALUE shaderArr;
+
 	PlanePrivate()
 	    : bitmap(0),
 	      srcRect(&tmp.rect),
@@ -80,7 +84,7 @@ struct PlanePrivate
 	      ox(0), oy(0),
 	      zoomX(1), zoomY(1),
 	      quadSourceDirty(false),
-		  waterTime(0.0)
+		  shaderArr(0)
 	{
 		updateSrcRectCon();
 		prepareCon = shState->prepareDraw.connect
@@ -189,7 +193,7 @@ DEF_ATTR_SIMPLE(Plane, SrcRect,   Rect&,  *p->srcRect)
 DEF_ATTR_SIMPLE(Plane, Opacity,   int,     p->opacity)
 DEF_ATTR_SIMPLE(Plane, Color,     Color&, *p->color)
 DEF_ATTR_SIMPLE(Plane, Tone,      Tone&,  *p->tone)
-DEF_ATTR_SIMPLE(Plane, WaterTime, float, p->waterTime)
+DEF_ATTR_SIMPLE(Plane, ShaderArr, VALUE, p->shaderArr)
 
 Plane::~Plane()
 {
@@ -293,17 +297,7 @@ void Plane::draw()
 
 	ShaderBase *base;
 
-	if (p->waterTime != 0)
-	{
-		WaterShader &shader = shState->shaders().water;
-		shader.bind();
-		shader.applyViewportProj();
-		shader.setiTime(p->waterTime);
-		shader.setOpacity(p->opacity.norm);
-
-		base = &shader;
-	}
-	else if (p->color->hasEffect() || p->tone->hasEffect() || p->opacity != 255)
+	if (p->color->hasEffect() || p->tone->hasEffect() || p->opacity != 255)
 	{
 		PlaneShader &shader = shState->shaders().plane;
 
@@ -325,6 +319,23 @@ void Plane::draw()
 		shader.setTranslation(Vec2i());
 
 		base = &shader;
+	}
+
+	if (p->shaderArr) {
+		long size = rb_array_len(p->shaderArr);
+
+		for (long i = 0; i < size; i++) {
+			VALUE value = rb_ary_entry(p->shaderArr, i);
+			
+			CustomShader* shader = getPrivateDataCheck<CustomShader>(value, CustomShaderType);
+			CompiledShader* compiled = shader->getShader();
+
+			compiled->bind();
+			compiled->applyViewportProj();
+			shader->applyArgs();
+
+			base = compiled;
+		}
 	}
 
 	glState.blendMode.pushSet(p->blendType);

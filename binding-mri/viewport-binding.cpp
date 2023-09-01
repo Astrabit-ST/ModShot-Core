@@ -27,6 +27,8 @@
 #include "binding-util.h"
 #include "binding-types.h"
 
+#include "shadable-element-binding.h"
+
 DEF_TYPE(Viewport);
 
 RB_METHOD(viewportInitialize)
@@ -59,6 +61,8 @@ RB_METHOD(viewportInitialize)
 		v = new Viewport(x, y, width, height);
 	}
 
+	shadableElementInitialize<Viewport>(self, v);
+
 	setPrivateData(self, v);
 
 	/* Wrap property objects */
@@ -76,75 +80,12 @@ RB_METHOD(viewportInitialize)
 	return self;
 }
 
-RB_METHOD(setRGBOffset)
-{
-	double x, y, z;
-	double x2, y2, z2;
-	rb_get_args(argc, argv, "ffffff", &x, &y, &z, &x2, &y2, &z2);
-
-	Viewport *v = getPrivateData<Viewport>(self);
-
-	v->setRGBOffsetx(Vec4(x, y, z, 0));
-	v->setRGBOffsety(Vec4(x2, y2, z2, 0));
-
-	return Qnil;
-}
-
-RB_METHOD(setCubicTime)
-{
-	double time;
-	rb_get_args(argc, argv, "f", &time);
-
-	Viewport *v = getPrivateData<Viewport>(self);
-
-	v->setCubicTime(time);
-
-	return Qnil;
-}
-
-RB_METHOD(setBinaryStrength)
-{
-	double strength;
-	rb_get_args(argc, argv, "f", &strength);
-
-	Viewport *v = getPrivateData<Viewport>(self);
-
-	v->setBinaryStrength(clamp(strength, 0.0, 1.0));
-
-	return Qnil;
-}
-
-RB_METHOD(setWaterTime)
-{
-	double time;
-	rb_get_args(argc, argv, "f", &time);
-
-	Viewport *v = getPrivateData<Viewport>(self);
-
-	v->setWaterTime(time);
-
-	return Qnil;
-}
-
-RB_METHOD(setZoom)
-{
-	double x, y;
-	rb_get_args(argc, argv, "ff", &x, &y);
-
-	Viewport *v = getPrivateData<Viewport>(self);
-
-	v->setZoom(Vec2(x, y));
-
-	return Qnil;
-}
-
 DEF_PROP_OBJ_VAL(Viewport, Rect,  Rect,  "rect")
 DEF_PROP_OBJ_VAL(Viewport, Color, Color, "color")
 DEF_PROP_OBJ_VAL(Viewport, Tone,  Tone,  "tone")
 
 DEF_PROP_I(Viewport, OX)
 DEF_PROP_I(Viewport, OY)
-DEF_PROP_B(Viewport, Scanned)
 
 void
 viewportBindingInit()
@@ -155,19 +96,14 @@ viewportBindingInit()
 	disposableBindingInit  <Viewport>(klass);
 	flashableBindingInit   <Viewport>(klass);
 	sceneElementBindingInit<Viewport>(klass);
+	shadableElementBindingInit(klass);
 
 	_rb_define_method(klass, "initialize", viewportInitialize);
-	_rb_define_method(klass, "setRGBOffset", setRGBOffset);
-	_rb_define_method(klass, "setZoom", setZoom);
-	_rb_define_method(klass, "setCubicTime", setCubicTime);
-	_rb_define_method(klass, "setBinaryStrength", setBinaryStrength);
-	_rb_define_method(klass, "setWaterTime", setWaterTime);
-
+	
 	INIT_PROP_BIND( Viewport, Rect,  "rect"  );
 	INIT_PROP_BIND( Viewport, OX,    "ox"    );
 	INIT_PROP_BIND( Viewport, OY,    "oy"    );
 	INIT_PROP_BIND( Viewport, Color, "color" );
 	INIT_PROP_BIND( Viewport, Tone,  "tone"  );
-	INIT_PROP_BIND( Viewport, Scanned, "scanned");
 }
 

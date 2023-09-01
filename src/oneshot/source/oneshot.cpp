@@ -16,7 +16,9 @@
 // OS-Specific code
 #if defined _WIN32
 	#define OS_W32
-	//#define WIN32_LEAN_AND_MEAN
+	#ifndef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
+	#endif
 	#define SECURITY_WIN32
 	#include <windows.h>
 	#include <mmsystem.h>

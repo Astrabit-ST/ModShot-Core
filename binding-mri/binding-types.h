@@ -37,4 +37,9 @@ DECL_TYPE(Viewport);
 DECL_TYPE(Tilemap);
 DECL_TYPE(Window);
 
+DECL_TYPE(CustomShader);
+DECL_TYPE(CompiledShader);
+
+DECL_TYPE(Vec2);
+DECL_TYPE(Vec4);
 #endif // BINDINGTYPES_H
